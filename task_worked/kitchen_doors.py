@@ -2,7 +2,6 @@ from mani_skill.utils.registration import register_env
 from robocasa_tasks._base import *
 
 
-@register_env("RoboCasa-Manipulate-Door-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
 class ManipulateDoor(Kitchen):
     """
     Class encapsulating the atomic manipulate door tasks.
@@ -145,25 +144,7 @@ class OpenSingleDoor(OpenDoor):
         super().__init__(door_id=door_id, *args, **kwargs)
 
 
-@register_env("RoboCasa-Open-Double-Door-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
-class OpenDoubleDoor(OpenDoor):
-    def __init__(self, door_id=FixtureType.DOOR_TOP_HINGE_DOUBLE, *args, **kwargs):
-        super().__init__(door_id=door_id, *args, **kwargs)
-
-
 @register_env("RoboCasa-Close-Door-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
 class CloseDoor(ManipulateDoor):
     def __init__(self, behavior=None, *args, **kwargs):
         super().__init__(behavior="close", *args, **kwargs)
-
-
-@register_env("RoboCasa-Close-Single-Door-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
-class CloseSingleDoor(CloseDoor):
-    def __init__(self, door_id=FixtureType.DOOR_TOP_HINGE_SINGLE, *args, **kwargs):
-        super().__init__(door_id=door_id, *args, **kwargs)
-
-
-@register_env("RoboCasa-Close-Double-Door-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
-class CloseDoubleDoor(CloseDoor):
-    def __init__(self, door_id=FixtureType.DOOR_TOP_HINGE_DOUBLE, *args, **kwargs):
-        super().__init__(door_id=door_id, *args, **kwargs)
