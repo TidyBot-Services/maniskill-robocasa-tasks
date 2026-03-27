@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -49,7 +49,7 @@ class VeggieDipPrep(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     size=(0.3, 0.6),
-                    pos=(0, -1),
+                    pos=(0, -0.3),
                 ),
             )
         )
@@ -62,7 +62,7 @@ class VeggieDipPrep(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     size=(0.8, 0.6),
-                    pos=(0, -1.0),
+                    pos=(0, -0.3),
                 ),
             )
         )
@@ -73,7 +73,7 @@ class VeggieDipPrep(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     size=(0.8, 0.6),
-                    pos=(0, -1.0),
+                    pos=(0, -0.3),
                 ),
             )
         )
@@ -87,7 +87,7 @@ class VeggieDipPrep(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     size=(0.8, 0.6),
-                    pos=(0, -1.0),
+                    pos=(0, -0.3),
                 ),
             )
         )

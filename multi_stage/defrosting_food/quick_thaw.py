@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -54,35 +54,44 @@ class QuickThaw(Kitchen):
 
     def _get_obj_cfgs(self):
         cfgs = []
+
+        cfgs.append(
+            dict(
+                name="plate",
+                obj_groups="plate",
+                placement=dict(
+                    fixture=self.counter,
+                    sample_region_kwargs=dict(ref=self.stove),
+                    size=(0.50, 0.40),
+                    pos=("ref", -0.3),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
+
         cfgs.append(
             dict(
                 name="meat",
                 obj_groups="meat",
                 placement=dict(
                     fixture=self.counter,
-                    size=(0.50, 0.30),
-                    sample_region_kwargs=dict(
-                        ref=self.stove,
-                    ),
-                    pos=("ref", -1.0),
-                    try_to_place_in="plate",
+                    sample_region_kwargs=dict(ref=self.stove),
+                    size=(0.40, 0.30),
+                    pos=("ref", 0.0),
                 ),
             )
         )
 
-        # place the pot on the specific burner we chose earlier
         cfgs.append(
             dict(
                 name="container",
-                obj_groups=("pot"),
+                obj_groups="pot",
                 placement=dict(
-                    fixture=self.stove,
+                    fixture=self.counter,
+                    sample_region_kwargs=dict(ref=self.stove),
+                    size=(0.50, 0.40),
+                    pos=("ref", 0.3),
                     ensure_object_boundary_in_range=False,
-                    sample_region_kwargs=dict(
-                        locs=[self.knob],
-                    ),
-                    size=(0.02, 0.02),
-                    rotation=[(-3 * np.pi / 8, -np.pi / 4), (np.pi / 4, 3 * np.pi / 8)],
                 ),
             )
         )

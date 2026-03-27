@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 from robocasa_tasks.single_stage.kitchen_drawer import ManipulateDrawer
 
@@ -57,7 +57,7 @@ class DrawerUtensilSort(ManipulateDrawer):
                         ref=self.drawer,
                     ),
                     size=(0.3, 0.4),
-                    pos=("ref", -1.0),
+                    pos=("ref", 0.5),
                     offset=(-0.05, 0.0),
                 ),
             )
@@ -74,7 +74,7 @@ class DrawerUtensilSort(ManipulateDrawer):
                         ref=self.drawer,
                     ),
                     size=(0.3, 0.4),
-                    pos=("ref", -1.0),
+                    pos=("ref", 0.5),
                     offset=(0.05, 0.0),
                 ),
             )

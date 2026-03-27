@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -94,7 +94,7 @@ class MeatTransfer(Kitchen):
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.cab),
                     size=(0.5, 0.4),
-                    pos=(0.0, -1.0),
+                    pos=(0.0, -0.5),
                 ),
             )
         )

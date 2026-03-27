@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -22,6 +22,9 @@ class FryingPanAdjustment(Kitchen):
     def _setup_kitchen_references(self):
         super()._setup_kitchen_references()
         self.stove = self.register_fixture_ref("stove", dict(id=FixtureType.STOVE))
+        self.counter = self.register_fixture_ref(
+            "counter", dict(id=FixtureType.COUNTER, ref=self.stove, size=(0.3, 0.2))
+        )
         self.init_robot_base_pos = self.stove
 
     def _reset_internal(self):
@@ -50,9 +53,10 @@ class FryingPanAdjustment(Kitchen):
                 name="obj",
                 obj_groups=("pan"),
                 placement=dict(
-                    fixture=self.stove,
+                    fixture=self.counter,
+                    size=(0.60, 0.40),
+                    pos=(0.0, 0.0),
                     ensure_object_boundary_in_range=False,
-                    size=(0.05, 0.05),
                 ),
             )
         )

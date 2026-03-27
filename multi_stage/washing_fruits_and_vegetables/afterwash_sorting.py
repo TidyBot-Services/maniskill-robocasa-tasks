@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 import random
 
 from robocasa_tasks._base import *
@@ -122,8 +122,8 @@ class AfterwashSorting(Kitchen):
                         ref=self.sink,
                         loc="left_right",
                     ),
-                    size=(0.50, 0.50),
-                    pos=("ref", -1.0),
+                    size=(0.60, 0.50),
+                    pos=("ref", 0.5),
                 ),
             )
         )
@@ -138,8 +138,8 @@ class AfterwashSorting(Kitchen):
                         ref=self.sink,
                         loc="left_right",
                     ),
-                    size=(0.50, 0.50),
-                    pos=("ref", -1.0),
+                    size=(0.60, 0.50),
+                    pos=("ref", 0.5),
                 ),
             )
         )

@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -219,7 +219,7 @@ class OpenDrawer(ManipulateDrawer):
         )
 
         # distractors
-        num_distr = self.rng.integers(1, 4)
+        num_distr = 2
         for i in range(num_distr):
             cfgs.append(
                 dict(
@@ -230,9 +230,9 @@ class OpenDrawer(ManipulateDrawer):
                         sample_region_kwargs=dict(
                             ref=self.drawer,
                         ),
-                        size=(1.0, 0.50),
-                        pos=(None, -1.0),
-                        offset=(0.0, 0.10),
+                        size=(0.60, 0.40),
+                        pos=(0.0, 0.0),
+                        offset=(0.0, 0.0),
                     ),
                 )
             )
@@ -269,13 +269,13 @@ class CloseDrawer(ManipulateDrawer):
                     fixture=self.drawer,
                     size=(0.30, 0.30),
                     pos=(None, -0.75),
-                    offset=(0, -self.drawer.size[1] * 0.55),
+                    offset=(0, -self.drawer.size[1] * 0.20),
                 ),
             )
         )
 
         # distractors
-        num_distr = self.rng.integers(1, 4)
+        num_distr = 2
         for i in range(num_distr):
             cfgs.append(
                 dict(
@@ -286,9 +286,9 @@ class CloseDrawer(ManipulateDrawer):
                         sample_region_kwargs=dict(
                             ref=self.drawer,
                         ),
-                        size=(1.0, 0.50),
-                        pos=(None, -1.0),
-                        offset=(0.0, 0.10),
+                        size=(0.60, 0.40),
+                        pos=(0.0, 0.0),
+                        offset=(0.0, 0.0),
                     ),
                 )
             )

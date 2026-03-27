@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -92,7 +92,7 @@ class CountertopCleanup(Kitchen):
                         ref=self.cab,
                     ),
                     size=(0.60, 0.30),
-                    pos=(0.0, -1.0),
+                    pos=(0.0, -0.5),
                     offset=(0.0, 0.10),
                 ),
             )
@@ -109,7 +109,7 @@ class CountertopCleanup(Kitchen):
                         ref=self.cab,
                     ),
                     size=(0.60, 0.30),
-                    pos=(0.0, -1.0),
+                    pos=(0.0, -0.5),
                     offset=(0.0, 0.10),
                 ),
             )
@@ -125,7 +125,7 @@ class CountertopCleanup(Kitchen):
                         ref=self.cab,
                     ),
                     size=(1.0, 0.30),
-                    pos=(0.0, 1.0),
+                    pos=(0.0, 0.0),
                 ),
             )
         )
@@ -137,7 +137,7 @@ class CountertopCleanup(Kitchen):
                 placement=dict(
                     fixture=self.cab,
                     size=(1.0, 0.20),
-                    pos=(0.0, 1.0),
+                    pos=(0.0, 0.0),
                     offset=(0.0, 0.0),
                 ),
             )

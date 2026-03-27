@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -83,7 +83,7 @@ class SimmeringSauce(Kitchen):
                         ref=self.stove,
                     ),
                     size=(0.35, 0.2),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.3),
                 ),
             )
         )

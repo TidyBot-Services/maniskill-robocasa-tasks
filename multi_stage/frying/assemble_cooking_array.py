@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -74,8 +74,7 @@ class AssembleCookingArray(Kitchen):
                         ref=self.stove,
                     ),
                     size=(0.30, 0.30),
-                    pos=("ref", -1.0),
-                    try_to_place_in="container",
+                    pos=("ref", -0.5),
                 ),
             )
         )
@@ -88,7 +87,7 @@ class AssembleCookingArray(Kitchen):
                 placement=dict(
                     fixture=self.cab,
                     size=(0.50, 0.20),
-                    pos=(-1.0, -1.0),
+                    pos=(-1.0, 0.0),
                 ),
             )
         )
@@ -101,7 +100,7 @@ class AssembleCookingArray(Kitchen):
                 placement=dict(
                     fixture=self.cab,
                     size=(0.50, 0.20),
-                    pos=(1.0, -1.0),
+                    pos=(1.0, 0.0),
                 ),
             )
         )

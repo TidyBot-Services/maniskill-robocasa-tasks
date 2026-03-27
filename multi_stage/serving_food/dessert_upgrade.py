@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -46,9 +46,22 @@ class DessertUpgrade(Kitchen):
                 graspable=False,
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(top_size=(1.0, 0.4)),
-                    size=(1, 0.4),
-                    pos=(0, -1),
+                    size=(0.60, 0.40),
+                    pos=(0.0, 0.0),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
+
+        cfgs.append(
+            dict(
+                name="plate1",
+                obj_groups="plate",
+                placement=dict(
+                    fixture=self.counter,
+                    size=(0.50, 0.40),
+                    pos=(-0.5, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -60,9 +73,22 @@ class DessertUpgrade(Kitchen):
                 graspable=True,
                 placement=dict(
                     fixture=self.counter,
-                    size=(1, 0.4),
-                    pos=(0, -1),
-                    try_to_place_in="plate",
+                    size=(0.40, 0.30),
+                    pos=(-0.3, 0.0),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
+
+        cfgs.append(
+            dict(
+                name="plate2",
+                obj_groups="plate",
+                placement=dict(
+                    fixture=self.counter,
+                    size=(0.50, 0.40),
+                    pos=(0.5, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -74,9 +100,9 @@ class DessertUpgrade(Kitchen):
                 graspable=True,
                 placement=dict(
                     fixture=self.counter,
-                    size=(1, 0.4),
-                    pos=(0, -1),
-                    try_to_place_in="plate",
+                    size=(0.40, 0.30),
+                    pos=(0.3, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )

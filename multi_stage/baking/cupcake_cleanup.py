@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 import numpy as np
 
 from robocasa_tasks._base import *
@@ -42,18 +42,29 @@ class CupcakeCleanup(Kitchen):
 
     def _get_obj_cfgs(self):
         cfgs = []
+
+        cfgs.append(
+            dict(
+                name="tray",
+                obj_groups="tray",
+                placement=dict(
+                    fixture=self.counter,
+                    size=(0.50, 0.40),
+                    pos=(0.0, 0.0),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
+
         cfgs.append(
             dict(
                 name="cupcake",
                 obj_groups="cupcake",
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(
-                        ref=self.sink, loc="left_right", top_size=(0.6, 0.4)
-                    ),
-                    size=(0.3, 0.5),
-                    pos=("ref", -1.0),
-                    try_to_place_in="tray",
+                    size=(0.40, 0.30),
+                    pos=(-0.3, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -64,9 +75,9 @@ class CupcakeCleanup(Kitchen):
                 obj_groups="bowl",
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(ref=self.sink, loc="left_right"),
-                    size=(0.3, 0.5),
-                    pos=("ref", -1.0),
+                    size=(0.50, 0.40),
+                    pos=(0.3, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )

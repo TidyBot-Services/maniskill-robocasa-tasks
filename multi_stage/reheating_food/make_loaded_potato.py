@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -45,16 +45,16 @@ class MakeLoadedPotato(Kitchen):
 
     def _get_obj_cfgs(self):
         cfgs = []
-        # Initialize potato in the microwave
+        # Initialize potato on the counter (near the microwave)
         cfgs.append(
             dict(
                 name="potato",
                 obj_groups="potato",
                 placement=dict(
-                    fixture=self.microwave,
-                    size=(0.05, 0.05),
-                    ensure_object_boundary_in_range=False,
-                    try_to_place_in="bowl",
+                    fixture=self.counter,
+                    sample_region_kwargs=dict(ref=self.microwave),
+                    size=(0.40, 0.40),
+                    pos=("ref", 0.5),
                 ),
             )
         )
@@ -66,7 +66,7 @@ class MakeLoadedPotato(Kitchen):
                 obj_groups="cutting_board",
                 placement=dict(
                     fixture=self.counter,
-                    size=(0.05, 0.05),
+                    size=(0.50, 0.50),
                     ensure_object_boundary_in_range=False,
                     pos=(0, 0),
                     rotation=np.pi / 2,
@@ -79,14 +79,14 @@ class MakeLoadedPotato(Kitchen):
             dict(
                 name="condiment",
                 obj_groups="condiment",
-                placement=dict(fixture=self.counter, size=(0.6, 0.5), pos=(0, -1)),
+                placement=dict(fixture=self.counter, size=(0.6, 0.5), pos=(0, -0.3)),
             )
         )
         cfgs.append(
             dict(
                 name="cheese",
                 obj_groups="cheese",
-                placement=dict(fixture=self.counter, size=(0.6, 0.5), pos=(0, -1)),
+                placement=dict(fixture=self.counter, size=(0.6, 0.5), pos=(0, -0.3)),
             )
         )
         return cfgs

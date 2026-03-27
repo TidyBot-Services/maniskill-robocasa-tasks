@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -68,7 +68,7 @@ class SteamVegetables(Kitchen):
                     sample_region_kwargs=dict(
                         ref=self.stove,
                     ),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.5),
                 ),
             )
         )
@@ -83,7 +83,7 @@ class SteamVegetables(Kitchen):
                     sample_region_kwargs=dict(
                         ref=self.stove,
                     ),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.5),
                 ),
             )
         )
@@ -93,15 +93,13 @@ class SteamVegetables(Kitchen):
                 name="pot",
                 obj_groups="pot",
                 placement=dict(
-                    fixture=self.stove,
-                    # ensure_object_boundary_in_range=False because the pans handle is a part of the
-                    # bounding box making it hard to place it if set to True
-                    ensure_object_boundary_in_range=False,
+                    fixture=self.counter,
                     sample_region_kwargs=dict(
-                        locs=[self.knob],
+                        ref=self.stove,
                     ),
-                    rotation=[(-3 * np.pi / 8, -np.pi / 4), (np.pi / 4, 3 * np.pi / 8)],
-                    size=(0.02, 0.02),
+                    size=(0.50, 0.40),
+                    pos=("ref", 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )

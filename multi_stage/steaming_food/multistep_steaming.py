@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -75,7 +75,7 @@ class MultistepSteaming(Kitchen):
                         ref=self.stove,
                     ),
                     size=(0.05, 0.05),
-                    pos=("ref", -0.7),
+                    pos=("ref", -0.3),
                     rotation=np.pi / 2,
                     # ensure_object_boundary_in_range=False because the pans handle is a part of the
                     # bounding box making it hard to place it if set to True
@@ -92,7 +92,7 @@ class MultistepSteaming(Kitchen):
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.sink, loc="left_right"),
                     size=(0.5, 0.5),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.5),
                 ),
             )
         )

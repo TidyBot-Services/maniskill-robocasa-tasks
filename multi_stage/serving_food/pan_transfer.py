@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -25,7 +25,7 @@ class PanTransfer(Kitchen):
         self.stove = self.register_fixture_ref("stove", dict(id=FixtureType.STOVE))
         self.init_robot_base_pos = self.stove
         self.dining_table = self.register_fixture_ref(
-            "counter", dict(id=FixtureType.COUNTER, ref=self.stove, size=(0.5, 0.5))
+            "counter", dict(id=FixtureType.COUNTER, ref=self.stove, size=(0.3, 0.2))
         )
 
     def get_ep_meta(self):
@@ -41,35 +41,31 @@ class PanTransfer(Kitchen):
 
     def _get_obj_cfgs(self):
         cfgs = []
+
+        cfgs.append(
+            dict(
+                name="pan",
+                obj_groups="pan",
+                placement=dict(
+                    fixture=self.stove,
+                    size=(0.05, 0.05),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
+
         cfgs.append(
             dict(
                 name="vegetable",
                 obj_groups="vegetable",
                 placement=dict(
-                    fixture=self.stove,
-                    size=(0.05, 0.05),
+                    fixture=self.dining_table,
+                    size=(0.60, 0.40),
+                    pos=(0.0, 0.0),
                     ensure_object_boundary_in_range=False,
-                    try_to_place_in="pan",
-                    container_kwargs=dict(
-                        rotation=[
-                            (-3 * np.pi / 8, -np.pi / 4),
-                            (np.pi / 4, 3 * np.pi / 8),
-                        ],
-                    ),
                 ),
             )
         )
-        # cfgs.append(dict(
-        #     name="vegetable2",
-        #     obj_groups="vegetable",
-        #     placement=dict(
-        #         size=(0.01, 0.01),
-        #         ensure_object_boundary_in_range=False,
-        #         sample_args=dict(
-        #             reference="vegetable_container"
-        #         )
-        #     ),
-        # ))
 
         cfgs.append(
             dict(
@@ -78,11 +74,9 @@ class PanTransfer(Kitchen):
                 graspable=False,
                 placement=dict(
                     fixture=self.dining_table,
-                    sample_region_kwargs=dict(
-                        ref=FixtureType.STOOL,
-                    ),
-                    size=(0.50, 0.50),
-                    pos=("ref", 1.0),
+                    size=(0.60, 0.40),
+                    pos=(0.0, -0.3),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -93,8 +87,9 @@ class PanTransfer(Kitchen):
                 exclude_obj_groups=["plate", "pan", "vegetable"],
                 placement=dict(
                     fixture=self.dining_table,
-                    size=(0.30, 0.20),
-                    pos=(0.5, 0.5),
+                    size=(0.40, 0.30),
+                    pos=(0.0, 0.3),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -103,10 +98,10 @@ class PanTransfer(Kitchen):
     def _check_success(self):
         vegetable_on_plate = OU.check_obj_in_receptacle(self, "vegetable", "plate")
         pan_on_stove = OU.check_obj_fixture_contact(
-            self, "vegetable_container", self.stove
+            self, "pan", self.stove
         )
         gripper_obj_far = OU.gripper_obj_far(
-            self, "vegetable_container"
+            self, "pan"
         ) and OU.gripper_obj_far(self, "vegetable")
 
         return vegetable_on_plate and pan_on_stove and gripper_obj_far

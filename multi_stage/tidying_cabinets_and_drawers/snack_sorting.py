@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 from robocasa_tasks.single_stage.kitchen_drawer import *
 
@@ -36,15 +36,12 @@ class SnackSorting(ManipulateDrawer):
                 name="bar",
                 obj_groups="bar",
                 graspable=True,
-                # have to make sure that the sampled object can fit inside the drawer hence the max_size being 0.1 in the z axis
                 max_size=(None, None, 0.10),
                 placement=dict(
-                    fixture=self.drawer,
-                    size=(0.30, 0.30),
-                    # put object towards the front of the drawer
-                    pos=(None, -0.75),
-                    # offset to make sure the object is correctly placed since the drawer will be open to start
-                    offset=(0, -self.drawer.size[1] * 0.55),
+                    fixture=self.counter,
+                    sample_region_kwargs=dict(ref=self.drawer),
+                    size=(0.50, 0.40),
+                    pos=("ref", 0.0),
                 ),
             )
         )
@@ -55,11 +52,10 @@ class SnackSorting(ManipulateDrawer):
                 obj_groups="all",
                 max_size=(None, None, 0.10),
                 placement=dict(
-                    fixture=self.drawer,
-                    size=(0.30, 0.30),
-                    pos=(None, 1),
-                    # offset to make sure the object is correctly placed since the drawer will be open to start
-                    offset=(0, -self.drawer.size[1] * 0.55),
+                    fixture=self.counter,
+                    sample_region_kwargs=dict(ref=self.drawer),
+                    size=(0.50, 0.40),
+                    pos=("ref", -0.5),
                 ),
             )
         )
@@ -72,7 +68,7 @@ class SnackSorting(ManipulateDrawer):
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.drawer),
                     size=(0.60, 0.40),
-                    pos=("ref", -1.0),
+                    pos=("ref", 0.0),
                 ),
             )
         )

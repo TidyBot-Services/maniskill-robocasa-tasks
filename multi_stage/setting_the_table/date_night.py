@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -65,7 +65,7 @@ class DateNight(Kitchen):
                 placement=dict(
                     fixture=self.cab,
                     size=(0.50, 0.20),
-                    pos=(1.0, -1.0),
+                    pos=(1.0, -0.5),
                 ),
             )
         )
@@ -78,7 +78,7 @@ class DateNight(Kitchen):
                 placement=dict(
                     fixture=self.cab,
                     size=(0.50, 0.20),
-                    pos=(-1.0, -1.0),
+                    pos=(-1.0, -0.5),
                 ),
             )
         )

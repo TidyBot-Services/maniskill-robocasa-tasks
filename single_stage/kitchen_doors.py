@@ -110,7 +110,7 @@ class ManipulateDoor(Kitchen):
         )
 
         # distractors
-        num_distr = self.rng.integers(1, 4)
+        num_distr = 2
         for i in range(num_distr):
             cfgs.append(
                 dict(
@@ -123,9 +123,9 @@ class ManipulateDoor(Kitchen):
                         sample_region_kwargs=dict(
                             ref=self.door_fxtr,
                         ),
-                        size=(1.0, 0.50),
-                        pos=(None, -1.0),
-                        offset=(0.0, 0.10),
+                        size=(0.60, 0.40),
+                        pos=(0.0, 0.0),
+                        offset=(0.0, 0.0),
                     ),
                 )
             )

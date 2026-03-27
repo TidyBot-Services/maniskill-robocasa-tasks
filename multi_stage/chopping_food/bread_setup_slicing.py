@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -53,7 +53,7 @@ class BreadSetupSlicing(Kitchen):
             )
         )
 
-        self.num_bread = self.rng.choice([1, 2, 3])
+        self.num_bread = self.rng.choice([1, 2])
         for i in range(self.num_bread):
             cfgs.append(
                 dict(
@@ -65,7 +65,7 @@ class BreadSetupSlicing(Kitchen):
                         fixture=self.counter,
                         sample_region_kwargs=dict(top_size=(1.0, 0.4)),
                         size=(1, 0.4),
-                        pos=(0, -1.0),
+                        pos=(0, -0.5),
                         offset=(i * 0.07, 0),
                         try_to_place_in="container",
                     ),

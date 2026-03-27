@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -56,7 +56,7 @@ class SizeSorting(Kitchen):
                         fixture=self.counter,
                         sample_region_kwargs=dict(top_size=(0.6, 0.4)),
                         size=(0.6, 0.4),
-                        pos=(0, -1.0),
+                        pos=(0, 0.0),
                         offset=(i * 0.1, 0),
                     ),
                 )

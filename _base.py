@@ -151,14 +151,129 @@ class _FixtureRefsProxy:
         return len(refs_list)
 
 
+_FLAT_OBJECT_KEYWORDS = ("container", "plate", "bowl", "cup", "pan", "pot", "tray", "mug", "kettle", "cutting_board")
+_TILT_THRESHOLD_RAD = np.deg2rad(15.0)
+_FLOOR_Z_THRESHOLD = 0.5   # objects below this z likely fell off a surface
+_COUNTER_Z_DEFAULT = 0.93  # typical kitchen counter height in RoboCasa scenes
+_FLOAT_Z_MARGIN = 0.15     # objects more than this above surface_z are floating
+
+
 class Kitchen(RoboCasaKitchenEnv):
     """
     Base class for all ported RoboCasa tasks.
-    
+
     Overrides evaluate() to call _check_success() and return
     {"success": bool} for ManiSkill compatibility.
     """
-    
+
+    def _initialize_episode(self, env_idx, options):
+        """Parent init + correct physics issues (tilted/fallen objects)."""
+        super()._initialize_episode(env_idx, options)
+        self._stabilize_scene_objects()
+
+    def stabilize_scene(self):
+        """Public method: re-stabilize objects after physics steps."""
+        self._stabilize_scene_objects()
+
+    def _stabilize_scene_objects(self):
+        """Fix common physics issues: tilted flat objects + fallen objects."""
+        from scipy.spatial.transform import Rotation as R
+        import sapien
+        import torch
+
+        for scene_idx in range(self.num_envs):
+            # Collect all object z-positions to estimate surface height
+            all_z = []
+            for data in self.object_actors[scene_idx].values():
+                z = data["actor"].pose.p[0, 2].item()
+                if z > _FLOOR_Z_THRESHOLD:
+                    all_z.append(z)
+            surface_z = np.median(all_z) if all_z else _COUNTER_Z_DEFAULT
+
+            for name, data in self.object_actors[scene_idx].items():
+                actor = data["actor"]
+                pose = actor.pose
+                pos = pose.p[0].cpu().numpy()
+                quat_wxyz = pose.q[0].cpu().numpy()
+                quat_xyzw = [quat_wxyz[1], quat_wxyz[2], quat_wxyz[3], quat_wxyz[0]]
+                euler = R.from_quat(quat_xyzw).as_euler('xyz')
+                changed = False
+
+                # 1. Fix fallen objects: teleport back to surface height
+                if pos[2] < _FLOOR_Z_THRESHOLD:
+                    init_pose = data.get("pose")
+                    if init_pose is not None:
+                        # Restore to original placement pose
+                        actor.set_pose(init_pose)
+                        pos = init_pose.p[0].cpu().numpy() if hasattr(init_pose.p, 'cpu') else np.array(init_pose.p)
+                        qw = init_pose.q[0].cpu().numpy() if hasattr(init_pose.q, 'cpu') else np.array(init_pose.q)
+                        quat_xyzw = [qw[1], qw[2], qw[3], qw[0]]
+                        euler = R.from_quat(quat_xyzw).as_euler('xyz')
+                    else:
+                        # No saved pose — place on counter at original xy
+                        pos[2] = surface_z + 0.02
+                    changed = True
+
+                # 2. Fix tilted flat objects (plates, bowls, containers, etc.)
+                is_flat_type = any(kw in name.lower() for kw in _FLAT_OBJECT_KEYWORDS)
+                tilt = max(abs(euler[0]), abs(euler[1]))
+                if is_flat_type and tilt > _TILT_THRESHOLD_RAD:
+                    corrected = R.from_euler('xyz', [0.0, 0.0, euler[2]])
+                    cq = corrected.as_quat()  # xyzw
+                    new_quat = np.array([cq[3], cq[0], cq[1], cq[2]])  # wxyz
+                    # If severely tilted (>60°), z needs correction
+                    if tilt > np.deg2rad(60.0) and pos[2] > surface_z + 0.05:
+                        pos[2] = surface_z + 0.02
+                    new_pose = sapien.Pose(pos, new_quat)
+                    actor.set_pose(new_pose)
+                    data["pose"] = new_pose
+                    changed = True
+                elif not is_flat_type and tilt > np.deg2rad(25.0):
+                    # Any object significantly tilted (>25°) — upright it
+                    corrected = R.from_euler('xyz', [0.0, 0.0, euler[2]])
+                    cq = corrected.as_quat()
+                    new_quat = np.array([cq[3], cq[0], cq[1], cq[2]])
+                    new_pose = sapien.Pose(pos, new_quat)
+                    actor.set_pose(new_pose)
+                    data["pose"] = new_pose
+                    changed = True
+
+                # 3. Fix floating objects (bounced up during physics)
+                #    Compare current z to initial placement z
+                init_pose = data.get("pose")
+                if init_pose is not None:
+                    init_z = init_pose.p[0, 2].item() if hasattr(init_pose.p, 'cpu') else init_pose.p[2]
+                    drift_z = pos[2] - init_z
+                    if drift_z > _FLOAT_Z_MARGIN:
+                        pos[2] = init_z
+                        cur_q = actor.pose.q[0].cpu().numpy()
+                        new_pose = sapien.Pose(pos, cur_q)
+                        actor.set_pose(new_pose)
+                        data["pose"] = new_pose
+                        changed = True
+
+                # 4. Fix partial penetration: object center on counter but
+                #    collision mesh extends below surface
+                if 0.85 < pos[2] < 1.05:
+                    try:
+                        body = actor._bodies[0]
+                        aabb = body.compute_global_aabb_tight()
+                        aabb_bottom = aabb[0][2]
+                        if aabb_bottom < surface_z - 0.01:
+                            lift = (surface_z - aabb_bottom) + 0.002
+                            pos[2] += lift
+                            cur_q = actor.pose.q[0].cpu().numpy()
+                            new_pose = sapien.Pose(pos, cur_q)
+                            actor.set_pose(new_pose)
+                            data["pose"] = new_pose
+                            changed = True
+                    except Exception:
+                        pass
+
+                if changed:
+                    actor.set_linear_velocity(torch.zeros(1, 3, device=self.device))
+                    actor.set_angular_velocity(torch.zeros(1, 3, device=self.device))
+
     @property
     def rng(self):
         """Compatibility shim: RoboCasa uses self.rng, ManiSkill uses _batched_episode_rng.

@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -59,7 +59,7 @@ class BreadSelection(Kitchen):
                         ref=self.cab,
                     ),
                     size=(0.3, 0.5),
-                    pos=(1, -1.0),
+                    pos=(1, -0.5),
                     rot=np.pi / 2,
                 ),
             )
@@ -73,9 +73,9 @@ class BreadSelection(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.cab),
-                    size=(0.7, 0.5),
-                    pos=(-1, -1.0),
-                    try_to_place_in="plate",
+                    size=(0.50, 0.40),
+                    pos=(-1, -0.3),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -86,9 +86,9 @@ class BreadSelection(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.cab),
-                    size=(0.7, 0.5),
-                    pos=(-1, -1.0),
-                    try_to_place_in="plate",
+                    size=(0.50, 0.40),
+                    pos=(0, -0.3),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -98,7 +98,7 @@ class BreadSelection(Kitchen):
             dict(
                 name="jam",
                 obj_groups="jam",
-                placement=dict(fixture=self.cab, size=(1.0, 0.20), pos=(0, -1.0)),
+                placement=dict(fixture=self.cab, size=(1.0, 0.20), pos=(0, 0.0)),
             )
         )
 

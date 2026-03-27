@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -866,9 +866,22 @@ class PnPStoveToCounter(PnP):
     def _get_obj_cfgs(self):
         """
         Get the object configurations for the stove to counter pick and place task.
-        Puts the target object in a pan on the stove and places a container on the counter.
+        Puts the target object in a pan on the counter and places a container on the counter.
         """
         cfgs = []
+
+        cfgs.append(
+            dict(
+                name="pan",
+                obj_groups="pan",
+                placement=dict(
+                    fixture=self.counter,
+                    size=(0.60, 0.40),
+                    pos=(0.0, 0.0),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
 
         cfgs.append(
             dict(
@@ -879,11 +892,10 @@ class PnPStoveToCounter(PnP):
                 cookable=True,
                 max_size=(0.15, 0.15, None),
                 placement=dict(
-                    fixture=self.stove,
+                    fixture=self.counter,
+                    size=(0.50, 0.30),
+                    pos=(0.0, 0.3),
                     ensure_object_boundary_in_range=False,
-                    size=(0.02, 0.02),
-                    rotation=[(-3 * np.pi / 8, -np.pi / 4), (np.pi / 4, 3 * np.pi / 8)],
-                    try_to_place_in="pan",
                 ),
             )
         )
@@ -894,11 +906,9 @@ class PnPStoveToCounter(PnP):
                 obj_groups=("plate", "bowl"),
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(
-                        ref=self.stove,
-                    ),
-                    size=(0.30, 0.30),
-                    pos=("ref", -1.0),
+                    size=(0.50, 0.30),
+                    pos=(0.0, -0.3),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )

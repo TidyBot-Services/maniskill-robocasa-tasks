@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -64,7 +64,7 @@ class ClearClutter(Kitchen):
                             loc="left_right",
                         ),
                         size=(0.40, 0.40),
-                        pos=("ref", -1.0),
+                        pos=("ref", -0.5),
                     ),
                 )
             )
@@ -84,7 +84,7 @@ class ClearClutter(Kitchen):
                             loc="left_right",
                         ),
                         size=(0.40, 0.40),
-                        pos=("ref", -1.0),
+                        pos=("ref", -0.5),
                     ),
                 )
             )
@@ -99,7 +99,7 @@ class ClearClutter(Kitchen):
                         ref=self.sink, loc="left_right", top_size=(0.6, 0.6)
                     ),
                     size=(0.6, 0.8),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.5),
                 ),
             )
         )

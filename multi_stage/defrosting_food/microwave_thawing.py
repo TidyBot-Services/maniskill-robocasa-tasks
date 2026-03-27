@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -69,8 +69,8 @@ class MicrowaveThawing(Kitchen):
                     sample_region_kwargs=dict(
                         ref=self.microwave,
                     ),
-                    size=(0.30, 0.30),
-                    pos=("ref", -1.0),
+                    size=(0.50, 0.40),
+                    pos=("ref", 0.0),
                     try_to_place_in="container",
                 ),
             )

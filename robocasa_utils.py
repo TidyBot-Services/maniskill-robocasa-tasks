@@ -100,17 +100,18 @@ def check_obj_in_receptacle(env, obj_name: str, receptacle_name: str,
         env: Unwrapped ManiSkill env
         obj_name: Name of the object
         receptacle_name: Name of the receptacle object
-        th: XY distance threshold. If None, uses 0.15m default.
+        th: XY distance threshold. If None, uses 0.10m default.
     """
     obj_pos = _get_obj_pos(env, obj_name)
     recep_pos = _get_obj_pos(env, receptacle_name)
 
     if th is None:
-        th = 0.15  # default threshold
+        th = 0.10  # tightened from 0.15
 
     xy_dist = np.linalg.norm(obj_pos[:2] - recep_pos[:2])
-    # Object should be above or at receptacle height (not below)
-    z_ok = obj_pos[2] >= recep_pos[2] - 0.05
+    # Object must be above receptacle (not below or floating far above)
+    z_diff = obj_pos[2] - recep_pos[2]
+    z_ok = -0.02 <= z_diff <= 0.15  # at most 2cm below, 15cm above
 
     return bool(xy_dist < th and z_ok)
 
@@ -158,19 +159,23 @@ def obj_inside_of(env, obj_name: str, fixture_id: str,
         except Exception:
             pass
 
-    # Fallback: use fixture position + rough size estimate
+    # Fallback: use fixture position + size, but only allow half-size in Z
+    # to avoid including the space below the fixture (e.g., counter below cabinet)
     if hasattr(fixture, 'pos') and hasattr(fixture, 'size'):
         fpos = np.array(fixture.pos)
         fsize = np.array(fixture.size) if hasattr(fixture, 'size') else np.array([0.3, 0.3, 0.3])
         lower = fpos - fsize - th
         upper = fpos + fsize + th
+        # Tighten Z: only allow objects within the upper half of the fixture
+        # (prevents counting objects on counters below wall cabinets)
+        lower[2] = fpos[2] - fsize[2] * 0.5 - th
         return bool(np.all(obj_pos >= lower) and np.all(obj_pos <= upper))
 
-    # Last resort: just check distance
+    # Last resort: tightened distance check
     if hasattr(fixture, 'pos'):
         dist = np.linalg.norm(obj_pos - np.array(fixture.pos))
-        return dist < 0.5
-    
+        return dist < 0.25  # tightened from 0.5
+
     return False
 
 
@@ -179,30 +184,60 @@ def obj_inside_of(env, obj_name: str, fixture_id: str,
 # ---------------------------------------------------------------------------
 
 def check_obj_fixture_contact(env, obj_name, fixture_name=None) -> bool:
-    """Check if object is in contact with (or very close to) a fixture.
+    """Check if object is in contact with (resting on) a fixture.
 
-    Original uses MuJoCo contact array. We approximate with distance check
-    since SAPIEN contact queries for static objects can be unreliable.
+    Original uses MuJoCo contact array. We approximate with:
+    1. XY within fixture bounding box (using ext_sites if available)
+    2. Z height: object must be near fixture surface (not floating or below)
 
     Args:
         env: Unwrapped ManiSkill env
         obj_name: Object name (str) or object itself
-        fixture_name: Fixture reference name/object. If None, obj_name is used as both.
+        fixture_name: Fixture reference name/object. If None, returns False.
     """
     if fixture_name is None:
-        # Some tasks call check_obj_fixture_contact(env, obj_name, fixture)
         return False
-    
+
     obj_pos = _get_obj_pos(env, obj_name if isinstance(obj_name, str) else "obj")
     fixture = _get_fixture_ref(env, fixture_name)
 
-    if hasattr(fixture, 'pos'):
-        fpos = np.array(fixture.pos)
-        dist = np.linalg.norm(obj_pos - fpos)
-        # Consider "contact" if within 0.15m (generous for resting objects)
-        return dist < 0.15
+    if fixture is None or not hasattr(fixture, 'pos'):
+        return False
 
-    return False
+    fpos = np.array(fixture.pos)
+
+    # Try bounding box check via ext_sites
+    if hasattr(fixture, 'get_ext_sites'):
+        try:
+            ext = fixture.get_ext_sites(relative=False)
+            if len(ext) >= 2:
+                # ext_sites gives corner points; check XY containment
+                ext_arr = np.array(ext)
+                xy_min = ext_arr[:, :2].min(axis=0) - 0.03  # 3cm tolerance
+                xy_max = ext_arr[:, :2].max(axis=0) + 0.03
+                z_surface = ext_arr[:, 2].max()  # top surface
+
+                xy_in = np.all(obj_pos[:2] >= xy_min) and np.all(obj_pos[:2] <= xy_max)
+                # Object should be near the surface (within 10cm above, 2cm below)
+                z_ok = -0.02 <= (obj_pos[2] - z_surface) <= 0.10
+                return bool(xy_in and z_ok)
+        except Exception:
+            pass
+
+    # Fallback: use fixture position + size for bounding box
+    if hasattr(fixture, 'size'):
+        fsize = np.array(fixture.size)
+        # XY: within fixture footprint + small tolerance
+        xy_ok = (np.abs(obj_pos[0] - fpos[0]) < fsize[0] + 0.03 and
+                 np.abs(obj_pos[1] - fpos[1]) < fsize[1] + 0.03)
+        # Z: object should be near fixture top surface
+        fixture_top = fpos[2] + fsize[2]
+        z_ok = -0.02 <= (obj_pos[2] - fixture_top) <= 0.10
+        return bool(xy_ok and z_ok)
+
+    # Last resort: tightened distance check
+    dist = np.linalg.norm(obj_pos - fpos)
+    return dist < 0.10  # tightened from 0.15
 
 
 # ---------------------------------------------------------------------------

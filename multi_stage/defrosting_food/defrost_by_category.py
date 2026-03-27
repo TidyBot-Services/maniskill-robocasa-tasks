@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 # fixtures imported via _base
 
@@ -41,21 +41,13 @@ class DefrostByCategory(Kitchen):
         cfgs = []
 
         # Place the four objects (two fruits, two vegetables)
-        placements = list()
-        # Making the four regions separate - might help with
-        # initialization speed
-        for i in range(4):
-            placements.append(
-                dict(
-                    fixture=self.counter,
-                    sample_region_kwargs=dict(
-                        ref=self.sink, loc="left_right", top_size=(0.5, 0.5)
-                    ),
-                    size=(0.3, 0.4),
-                    pos=("ref", -1),
-                )
-            )
-        self.rng.shuffle(placements)
+        positions = [
+            (0.0, -0.3),
+            (0.0, 0.3),
+            (-0.5, 0.0),
+            (0.5, 0.0),
+        ]
+        self.rng.shuffle(positions)
 
         for i in range(4):
             cfgs.append(
@@ -63,7 +55,12 @@ class DefrostByCategory(Kitchen):
                     name="obj" + str(i),
                     obj_groups="fruit" if i <= 1 else "vegetable",
                     graspable=True,
-                    placement=placements[i],
+                    placement=dict(
+                        fixture=self.counter,
+                        size=(0.40, 0.30),
+                        pos=positions[i],
+                        ensure_object_boundary_in_range=False,
+                    ),
                 )
             )
 
@@ -74,11 +71,9 @@ class DefrostByCategory(Kitchen):
                 obj_groups="bowl",
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(
-                        ref=self.sink, loc="left_right", top_size=(0.5, 0.5)
-                    ),
-                    size=(0.3, 0.4),
-                    pos=("ref", -1),
+                    size=(0.50, 0.40),
+                    pos=(0.0, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )

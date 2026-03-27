@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -64,7 +64,7 @@ class ArrangeTea(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     size=(0.5, 0.5),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.5),
                     sample_region_kwargs=dict(ref=self.cab, top_size=(0.6, 0.4)),
                     offset=(0.1, 0.0),
                 ),
@@ -78,8 +78,8 @@ class ArrangeTea(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     size=(0.7, 0.7),
-                    pos=("ref", -0.6),
-                    offset=(-0.1, 0.0),
+                    pos=("ref", 0.0),
+                    offset=(0.0, 0.0),
                     sample_region_kwargs=dict(ref=self.cab, top_size=(0.6, 0.4)),
                 ),
             )

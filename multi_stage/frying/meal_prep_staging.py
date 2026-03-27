@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -53,9 +53,8 @@ class MealPrepStaging(Kitchen):
                 placement=dict(
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.stove, loc="left_right"),
-                    size=(0.5, 0.05),
-                    pos=("ref", 0.2),
-                    offset=(-0.13, 0.0),
+                    size=(0.60, 0.40),
+                    pos=("ref", 0.0),
                     rotation=0,
                     ensure_object_boundary_in_range=False,
                 ),
@@ -72,9 +71,8 @@ class MealPrepStaging(Kitchen):
                         ref=self.stove,
                         loc="left_right",
                     ),
-                    size=(0.5, 0.05),
-                    pos=("ref", -0.3),
-                    offset=(-0.13, 0.0),
+                    size=(0.60, 0.40),
+                    pos=("ref", -0.5),
                     rotation=0,
                     ensure_object_boundary_in_range=False,
                 ),
@@ -102,7 +100,7 @@ class MealPrepStaging(Kitchen):
                     fixture=self.counter,
                     sample_region_kwargs=dict(ref=self.stove, loc="left_right"),
                     size=(0.5, 0.5),
-                    pos=("ref", -1.0),
+                    pos=("ref", -0.5),
                 ),
             )
         )

@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -45,18 +45,33 @@ class ServeSteak(Kitchen):
 
     def _get_obj_cfgs(self):
         cfgs = []
+
+        cfgs.append(
+            dict(
+                name="pan",
+                obj_groups="pan",
+                placement=dict(
+                    fixture=self.dining_table,
+                    size=(0.60, 0.40),
+                    pos=(0.0, 0.0),
+                    ensure_object_boundary_in_range=False,
+                ),
+            )
+        )
+
         cfgs.append(
             dict(
                 name="obj",
                 obj_groups="steak",
                 placement=dict(
-                    fixture=self.stove,
-                    size=(0.05, 0.05),
+                    fixture=self.dining_table,
+                    size=(0.40, 0.40),
+                    pos=(0.0, 0.5),
                     ensure_object_boundary_in_range=False,
-                    try_to_place_in="pan",
                 ),
             )
         )
+
         cfgs.append(
             dict(
                 name="plate",
@@ -64,11 +79,9 @@ class ServeSteak(Kitchen):
                 graspable=False,
                 placement=dict(
                     fixture=self.dining_table,
-                    sample_region_kwargs=dict(
-                        ref=FixtureType.STOOL,
-                    ),
                     size=(0.50, 0.50),
-                    pos=("ref", 1.0),
+                    pos=(0.0, -0.5),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -79,7 +92,8 @@ class ServeSteak(Kitchen):
                 placement=dict(
                     fixture=self.dining_table,
                     size=(0.30, 0.20),
-                    pos=(0.5, 0.5),
+                    pos=(0.5, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -88,6 +102,6 @@ class ServeSteak(Kitchen):
     def _check_success(self):
         steak_on_plate = OU.check_obj_in_receptacle(self, "obj", "plate")
         pan_on_table = OU.check_obj_fixture_contact(
-            self, "obj_container", self.dining_table
+            self, "pan", self.dining_table
         )
         return steak_on_plate and pan_on_table and OU.gripper_obj_far(self)
