@@ -49,8 +49,11 @@ class CupcakeCleanup(Kitchen):
                 obj_groups="tray",
                 placement=dict(
                     fixture=self.counter,
+                    sample_region_kwargs=dict(
+                        ref=self.sink, loc="left_right",
+                    ),
                     size=(0.50, 0.40),
-                    pos=(0.0, 0.0),
+                    pos=("ref", 0.0),
                     ensure_object_boundary_in_range=False,
                 ),
             )
@@ -62,8 +65,11 @@ class CupcakeCleanup(Kitchen):
                 obj_groups="cupcake",
                 placement=dict(
                     fixture=self.counter,
+                    sample_region_kwargs=dict(
+                        ref=self.sink, loc="left_right",
+                    ),
                     size=(0.40, 0.30),
-                    pos=(-0.3, 0.0),
+                    pos=("ref", 0.3),
                     ensure_object_boundary_in_range=False,
                 ),
             )
@@ -75,8 +81,11 @@ class CupcakeCleanup(Kitchen):
                 obj_groups="bowl",
                 placement=dict(
                     fixture=self.counter,
+                    sample_region_kwargs=dict(
+                        ref=self.sink, loc="left_right",
+                    ),
                     size=(0.50, 0.40),
-                    pos=(0.3, 0.0),
+                    pos=("ref", -0.3),
                     ensure_object_boundary_in_range=False,
                 ),
             )

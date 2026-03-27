@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -30,7 +30,7 @@ class HeatMultipleWater(Kitchen):
             "cab", dict(id=FixtureType.CABINET_TOP, ref=self.stove)
         )
         self.ref_counter = self.register_fixture_ref(
-            "counter", dict(id=FixtureType.COUNTER, ref=self.ref_cab, size=(0.2, 0.2))
+            "counter", dict(id=FixtureType.COUNTER, ref=self.stove)
         )
 
         self.init_robot_base_pos = self.ref_cab
@@ -47,12 +47,10 @@ class HeatMultipleWater(Kitchen):
                 placement=dict(
                     fixture=self.ref_counter,
                     sample_region_kwargs=dict(
-                        ref=self.ref_cab,
+                        ref=self.stove,
                     ),
-                    size=(0.35, 0.35),
-                    pos=("ref", 0),
-                    # ensure_object_boundary_in_range=False because the pots handle is a part of the
-                    # bounding box making it hard to place it if set to True
+                    size=(0.50, 0.40),
+                    pos=("ref", 0.0),
                     ensure_object_boundary_in_range=False,
                 ),
             )
@@ -66,7 +64,7 @@ class HeatMultipleWater(Kitchen):
                 placement=dict(
                     fixture=self.ref_cab,
                     size=(0.50, 0.30),
-                    pos=(0, -1.0),
+                    pos=(0, 0.0),
                 ),
             )
         )

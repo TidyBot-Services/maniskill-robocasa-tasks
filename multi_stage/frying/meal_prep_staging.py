@@ -52,9 +52,8 @@ class MealPrepStaging(Kitchen):
                 obj_groups=("pan"),
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(ref=self.stove, loc="left_right"),
                     size=(0.60, 0.40),
-                    pos=("ref", 0.0),
+                    pos=(0.0, -0.5),
                     rotation=0,
                     ensure_object_boundary_in_range=False,
                 ),
@@ -67,12 +66,8 @@ class MealPrepStaging(Kitchen):
                 obj_groups=("pan"),
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(
-                        ref=self.stove,
-                        loc="left_right",
-                    ),
                     size=(0.60, 0.40),
-                    pos=("ref", -0.5),
+                    pos=(0.0, 0.5),
                     rotation=0,
                     ensure_object_boundary_in_range=False,
                 ),
@@ -85,9 +80,9 @@ class MealPrepStaging(Kitchen):
                 obj_groups=("vegetable"),
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(ref=self.stove, loc="left_right"),
-                    size=(0.4, 0.4),
-                    pos=("ref", 0.0),
+                    size=(0.30, 0.30),
+                    pos=(0.0, 0.0),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
@@ -98,9 +93,9 @@ class MealPrepStaging(Kitchen):
                 obj_groups=("meat"),
                 placement=dict(
                     fixture=self.counter,
-                    sample_region_kwargs=dict(ref=self.stove, loc="left_right"),
-                    size=(0.5, 0.5),
-                    pos=("ref", -0.5),
+                    size=(0.30, 0.30),
+                    pos=(0.0, -0.2),
+                    ensure_object_boundary_in_range=False,
                 ),
             )
         )
