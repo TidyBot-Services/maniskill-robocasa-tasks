@@ -63,6 +63,140 @@ from robocasa_tasks import robocasa_utils as OU
 import numpy as np
 
 
+# ---------------------------------------------------------------------------
+# Monkey-patch fixture door state methods for SAPIEN compatibility.
+# Original methods use MuJoCo API (env.sim.data.qpos); we replace with
+# SAPIEN articulation API (self.articulation.get_qpos / set_qpos).
+# ---------------------------------------------------------------------------
+def _normalize_joint_value(qpos, joint_min, joint_max):
+    if joint_max == joint_min:
+        return 0.0
+    return float(np.clip((qpos - joint_min) / (joint_max - joint_min), 0.0, 1.0))
+
+
+def _get_joint_qpos(fixture, joint_suffix):
+    """Get a single joint's qpos from a SAPIEN articulation."""
+    art = getattr(fixture, 'articulation', None)
+    if art is None:
+        return 0.0
+    joint_name = f"{joint_suffix}"
+    # Try exact name first, then with fixture name prefix
+    for name_candidate in [joint_name, f"{fixture.name}_{joint_suffix}"]:
+        if name_candidate in art.active_joints_map:
+            idx = art.active_joints_map[name_candidate].active_index[0].item()
+            return float(art.get_qpos()[0, idx].cpu().item())
+    # Fallback: search by suffix
+    for jname, joint in art.active_joints_map.items():
+        if joint_suffix in jname:
+            idx = joint.active_index[0].item()
+            return float(art.get_qpos()[0, idx].cpu().item())
+    return 0.0
+
+
+def _set_joint_qpos(fixture, joint_suffix, value):
+    """Set a single joint's qpos on a SAPIEN articulation."""
+    art = getattr(fixture, 'articulation', None)
+    if art is None:
+        return
+    for name_candidate in [joint_suffix, f"{fixture.name}_{joint_suffix}"]:
+        if name_candidate in art.active_joints_map:
+            idx = art.active_joints_map[name_candidate].active_index[0].item()
+            qpos = art.get_qpos()
+            qpos[:, idx] = value
+            art.set_qpos(qpos)
+            return
+    # Fallback: search by suffix
+    for jname, joint in art.active_joints_map.items():
+        if joint_suffix in jname:
+            idx = joint.active_index[0].item()
+            qpos = art.get_qpos()
+            qpos[:, idx] = value
+            art.set_qpos(qpos)
+            return
+
+
+def _patch_door_state_methods():
+    """Patch all fixture classes with SAPIEN-compatible door state methods."""
+    from mani_skill.utils.scene_builder.robocasa.fixtures.cabinet import (
+        SingleCabinet, HingeCabinet, Drawer,
+    )
+
+    # --- SingleCabinet ---
+    def _single_set_door_state(self, min, max, env, rng):
+        assert 0 <= min <= 1 and 0 <= max <= 1 and min <= max
+        joint_min, joint_max = 0, np.pi / 2
+        desired_min = joint_min + (joint_max - joint_min) * min
+        desired_max = joint_min + (joint_max - joint_min) * max
+        sign = -1 if self.orientation == "left" else 1
+        _set_joint_qpos(self, "doorhinge", sign * rng.uniform(desired_min, desired_max))
+
+    def _single_get_door_state(self, env):
+        hinge_qpos = _get_joint_qpos(self, "doorhinge")
+        sign = -1 if self.orientation == "left" else 1
+        hinge_qpos = hinge_qpos * sign
+        door = _normalize_joint_value(hinge_qpos, joint_min=0, joint_max=np.pi / 2)
+        return {"door": door}
+
+    SingleCabinet.set_door_state = _single_set_door_state
+    SingleCabinet.get_door_state = _single_get_door_state
+
+    # --- HingeCabinet ---
+    def _hinge_set_door_state(self, min, max, env, rng):
+        assert 0 <= min <= 1 and 0 <= max <= 1 and min <= max
+        joint_min, joint_max = 0, np.pi / 2
+        desired_min = joint_min + (joint_max - joint_min) * min
+        desired_max = joint_min + (joint_max - joint_min) * max
+        _set_joint_qpos(self, "rightdoorhinge", rng.uniform(desired_min, desired_max))
+        _set_joint_qpos(self, "leftdoorhinge", -rng.uniform(desired_min, desired_max))
+
+    def _hinge_get_door_state(self, env):
+        right_qpos = _get_joint_qpos(self, "rightdoorhinge")
+        left_qpos = -_get_joint_qpos(self, "leftdoorhinge")
+        left_door = _normalize_joint_value(left_qpos, joint_min=0, joint_max=np.pi / 2)
+        right_door = _normalize_joint_value(right_qpos, joint_min=0, joint_max=np.pi / 2)
+        return {"left_door": left_door, "right_door": right_door}
+
+    HingeCabinet.set_door_state = _hinge_set_door_state
+    HingeCabinet.get_door_state = _hinge_get_door_state
+
+    # --- Drawer ---
+    def _drawer_set_door_state(self, min, max, env, rng):
+        assert 0 <= min <= 1 and 0 <= max <= 1 and min <= max
+        joint_max = self.size[1] * 0.55
+        desired_min = joint_max * min
+        desired_max = joint_max * max
+        _set_joint_qpos(self, "slidejoint", -rng.uniform(desired_min, desired_max))
+
+    def _drawer_get_door_state(self, env):
+        qpos = _get_joint_qpos(self, "slidejoint")
+        qpos = qpos * -1
+        door = _normalize_joint_value(qpos, joint_min=0, joint_max=self.size[1] * 0.55)
+        return {"door": door}
+
+    Drawer.set_door_state = _drawer_set_door_state
+    Drawer.get_door_state = _drawer_get_door_state
+
+    # --- Microwave ---
+    def _micro_set_door_state(self, min, max, env, rng):
+        assert 0 <= min <= 1 and 0 <= max <= 1 and min <= max
+        joint_min, joint_max = 0, np.pi / 2
+        desired_min = joint_min + (joint_max - joint_min) * min
+        desired_max = joint_min + (joint_max - joint_min) * max
+        _set_joint_qpos(self, "microjoint", -rng.uniform(desired_min, desired_max))
+
+    def _micro_get_door_state(self, env):
+        qpos = _get_joint_qpos(self, "microjoint")
+        qpos = -qpos
+        door = _normalize_joint_value(qpos, joint_min=0, joint_max=np.pi / 2)
+        return {"door": door}
+
+    Microwave.set_door_state = _micro_set_door_state
+    Microwave.get_door_state = _micro_get_door_state
+
+
+_patch_door_state_methods()
+
+
 class _FixtureRefsProxy:
     """
     Proxy that makes self.fixture_refs behave like a dict (RoboCasa API)
@@ -449,12 +583,17 @@ class Kitchen(RoboCasaKitchenEnv):
         # has set init_robot_base_pos.
         self._recompute_robot_base_pose()
 
-        # Try to run _reset_internal to set task-specific attrs (e.g. self.knob, self.target)
-        # Guard: only if it's defined on the subclass (not the RoboCasa base)
-        if hasattr(type(self), '_reset_internal') and type(self)._reset_internal is not \
-                getattr(type(self).__mro__[1], '_reset_internal', None):
+        # Try to run _reset_internal to set task-specific attrs (e.g. door state, knobs)
+        # Guard: only if defined on a task subclass (not on Kitchen/RoboCasaKitchenEnv base)
+        has_custom_reset = any(
+            '_reset_internal' in cls.__dict__
+            for cls in type(self).__mro__
+            if cls is not Kitchen and cls is not RoboCasaKitchenEnv
+            and issubclass(cls, Kitchen)
+        )
+        if has_custom_reset:
             try:
-                type(self)._reset_internal(self)
+                self._reset_internal()
             except Exception:
                 pass  # Silently ignore SAPIEN-incompatible parts
         return result
