@@ -171,6 +171,31 @@ class Kitchen(RoboCasaKitchenEnv):
         super()._initialize_episode(env_idx, options)
         self._stabilize_scene_objects()
 
+    def _recompute_robot_base_pose(self):
+        """Recompute robot base pose using init_robot_base_pos after _setup_kitchen_references."""
+        import torch
+        from transforms3d.euler import euler2quat
+
+        ref_fixture = getattr(self, 'init_robot_base_pos', None)
+        sb = getattr(self, 'scene_builder', None)
+        if ref_fixture is None or sb is None or sb.robot_poses is None:
+            return
+
+        for scene_idx in range(self.num_envs):
+            fixtures = sb.scene_data[scene_idx].get("fixtures", {})
+            try:
+                robot_base_pos, robot_base_ori = sb.compute_robot_base_placement_pose(
+                    fixtures, ref_fixture
+                )
+                sb.robot_poses.raw_pose[scene_idx][:3] = torch.from_numpy(
+                    robot_base_pos
+                ).to(sb.robot_poses.device)
+                sb.robot_poses.raw_pose[scene_idx][3:] = torch.from_numpy(
+                    euler2quat(*robot_base_ori)
+                ).to(sb.robot_poses.device)
+            except Exception:
+                pass  # Fall back to original pose if recomputation fails
+
     def stabilize_scene(self):
         """Public method: re-stabilize objects after physics steps."""
         self._stabilize_scene_objects()
@@ -300,12 +325,43 @@ class Kitchen(RoboCasaKitchenEnv):
                 return {"success": torch.tensor([False], dtype=torch.bool, device=self.device), "error": str(e)}
         return {"success": torch.tensor([False], dtype=torch.bool, device=self.device)}
 
-    def compute_robot_base_placement_pose(self, fixture, **kwargs):
-        """Stub for RoboCasa's base placement computation. Returns fixture pos + facing direction."""
-        pos = np.array(getattr(fixture, 'pos', [0, 0, 0]))[:2]
-        # Default: stand 0.5m in front of fixture (facing it)
-        offset = np.array([0.5, 0.0])
-        return pos + offset, 0.0
+    def compute_robot_base_placement_pose(self, fixture=None, ref_fixture=None, offset=None, **kwargs):
+        """Compute robot base placement: stand in front of fixture, facing it.
+
+        Args:
+            fixture: The fixture to stand in front of.
+            ref_fixture: Alternative fixture reference (takes priority over fixture).
+            offset: (x, y) offset in the fixture's local frame.
+                    Local frame: X = left/right, Y-negative = in front.
+
+        Returns:
+            (pos_2d, yaw): Robot base XY position and yaw angle facing the fixture.
+        """
+        from transforms3d.euler import euler2mat
+
+        fxtr = ref_fixture if ref_fixture is not None else fixture
+        if fxtr is None:
+            return np.array([0.5, 0.0]), 0.0
+
+        fxtr_pos = np.array(getattr(fxtr, 'pos', [0, 0, 0]), dtype=float)
+        fxtr_rot = float(getattr(fxtr, 'rot', 0.0))
+        rot_mat = euler2mat(0, 0, fxtr_rot)
+
+        if offset is not None:
+            offset_3d = np.array([offset[0], offset[1], 0.0])
+        else:
+            # Default: stand 0.5m in front of fixture (local -Y direction)
+            offset_3d = np.array([0.0, -0.5, 0.0])
+
+        world_pos = fxtr_pos + rot_mat @ offset_3d
+        robot_pos = world_pos[:2]
+
+        # Yaw: face toward the fixture
+        dx = fxtr_pos[0] - robot_pos[0]
+        dy = fxtr_pos[1] - robot_pos[1]
+        yaw = float(np.arctan2(dy, dx))
+
+        return robot_pos, yaw
 
     def _ensure_reset_attrs(self):
         """Set attributes that _reset_internal() normally sets, using SAPIEN state."""
@@ -386,6 +442,13 @@ class Kitchen(RoboCasaKitchenEnv):
             # Provide a minimal _get_obj_cfgs so parent runs _setup_kitchen_references
             self._get_obj_cfgs = lambda: []
         result = super()._load_scene(options)
+
+        # Recompute robot base pose: the scene builder computes robot position
+        # during build() before _setup_kitchen_references() sets init_robot_base_pos,
+        # so the robot ends up at a random fixture. Fix by recomputing after task
+        # has set init_robot_base_pos.
+        self._recompute_robot_base_pose()
+
         # Try to run _reset_internal to set task-specific attrs (e.g. self.knob, self.target)
         # Guard: only if it's defined on the subclass (not the RoboCasa base)
         if hasattr(type(self), '_reset_internal') and type(self)._reset_internal is not \

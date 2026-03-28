@@ -116,6 +116,21 @@ def check_obj_in_receptacle(env, obj_name: str, receptacle_name: str,
     return bool(xy_dist < th and z_ok)
 
 
+def check_obj_near_obj(env, obj_name1: str, obj_name2: str, th: float = 0.25) -> bool:
+    """Check if two objects are near each other (XY distance within threshold).
+
+    Args:
+        env: Unwrapped ManiSkill env
+        obj_name1: Name of the first object
+        obj_name2: Name of the second object
+        th: XY distance threshold in meters
+    """
+    pos1 = _get_obj_pos(env, obj_name1)
+    pos2 = _get_obj_pos(env, obj_name2)
+    xy_dist = np.linalg.norm(pos1[:2] - pos2[:2])
+    return bool(xy_dist < th)
+
+
 # ---------------------------------------------------------------------------
 # OU.obj_inside_of
 # ---------------------------------------------------------------------------
