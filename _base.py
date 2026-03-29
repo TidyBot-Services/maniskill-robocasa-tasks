@@ -244,6 +244,112 @@ def _patch_stove_methods():
 _patch_stove_methods()
 
 
+# ---------------------------------------------------------------------------
+# Monkey-patch Sink methods for SAPIEN compatibility.
+# ---------------------------------------------------------------------------
+def _patch_sink_methods():
+    from mani_skill.utils.scene_builder.robocasa.fixtures.sink import Sink
+
+    def _sink_get_handle_state(self, env):
+        handle_state = {}
+        if self.handle_joint is None:
+            return handle_state
+
+        handle_qpos = _get_joint_qpos(self, "handle_joint")
+        handle_qpos = handle_qpos % (2 * np.pi)
+        if handle_qpos < 0:
+            handle_qpos += 2 * np.pi
+        handle_state["handle_joint"] = handle_qpos
+        handle_state["water_on"] = 0.40 < handle_qpos < np.pi
+
+        spout_qpos = _get_joint_qpos(self, "spout_joint")
+        spout_qpos = spout_qpos % (2 * np.pi)
+        if spout_qpos < 0:
+            spout_qpos += 2 * np.pi
+        handle_state["spout_joint"] = spout_qpos
+        if np.pi <= spout_qpos <= 2 * np.pi - np.pi / 6:
+            spout_ori = "left"
+        elif np.pi / 6 <= spout_qpos <= np.pi:
+            spout_ori = "right"
+        else:
+            spout_ori = "center"
+        handle_state["spout_ori"] = spout_ori
+
+        return handle_state
+
+    def _sink_set_handle_state(self, env, rng, mode="on"):
+        assert mode in ["on", "off", "random"]
+        if mode == "random":
+            mode = rng.choice(["on", "off"])
+        if mode == "off":
+            joint_val = 0.0
+        elif mode == "on":
+            joint_val = rng.uniform(0.40, 0.50)
+        _set_joint_qpos(self, "handle_joint", joint_val)
+
+    Sink.get_handle_state = _sink_get_handle_state
+    Sink.set_handle_state = _sink_set_handle_state
+
+
+_patch_sink_methods()
+
+
+# ---------------------------------------------------------------------------
+# Monkey-patch CoffeeMachine methods for SAPIEN compatibility.
+# ---------------------------------------------------------------------------
+def _patch_coffee_machine_methods():
+    from mani_skill.utils.scene_builder.robocasa.fixtures.accessories import CoffeeMachine
+
+    def _coffee_check_receptacle_placement(self, env, obj_name, xy_thresh=0.04):
+        if self._receptacle_pouring_site is None:
+            return False
+        from robocasa_tasks.robocasa_utils import _get_obj_pos
+        obj_pos = _get_obj_pos(env, obj_name)
+        # Approximate pour site with fixture position (receptacle is below machine)
+        pour_pos = np.array(self.pos, dtype=float)
+        pour_pos[2] -= 0.05
+        xy_check = np.linalg.norm(obj_pos[0:2] - pour_pos[0:2]) < xy_thresh
+        z_check = np.abs(obj_pos[2] - pour_pos[2]) < 0.10
+        return xy_check and z_check
+
+    def _coffee_gripper_button_far(self, env, th=0.15):
+        from robocasa_tasks.robocasa_utils import _get_eef_pos
+        gripper_pos = _get_eef_pos(env)
+        # Approximate button position with fixture position
+        button_pos = np.array(self.pos, dtype=float)
+        return float(np.linalg.norm(gripper_pos - button_pos)) > th
+
+    CoffeeMachine.check_receptacle_placement_for_pouring = _coffee_check_receptacle_placement
+    CoffeeMachine.gripper_button_far = _coffee_gripper_button_far
+
+
+_patch_coffee_machine_methods()
+
+
+# ---------------------------------------------------------------------------
+# Monkey-patch Microwave.update_state for SAPIEN compatibility.
+# Original uses MuJoCo contact detection for button presses.
+# In SAPIEN we skip contact-based toggle and allow manual _turned_on setting.
+# ---------------------------------------------------------------------------
+def _patch_microwave_state_methods():
+    from mani_skill.utils.scene_builder.robocasa.fixtures.microwave import Microwave
+
+    def _micro_update_state(self, env):
+        """SAPIEN-compatible: skip MuJoCo contact-based button detection.
+        The turned_on state can be set manually or checked via door state."""
+        pass
+
+    def _micro_set_turned_on(self, mode, env=None):
+        """Convenience method to set microwave on/off."""
+        self._turned_on = (mode == "on") if isinstance(mode, str) else bool(mode)
+
+    Microwave.update_state = _micro_update_state
+    Microwave.set_turned_on = _micro_set_turned_on
+
+
+_patch_microwave_state_methods()
+
+
 class _FixtureRefsProxy:
     """
     Proxy that makes self.fixture_refs behave like a dict (RoboCasa API)
