@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -91,8 +91,7 @@ class WarmCroissant(Kitchen):
         knobs_state = self.stove.get_knobs_state(env=self)
         knob_value = knobs_state[self.knob]
         knob_on = 0.35 <= np.abs(knob_value) <= 2 * np.pi - 0.35
-        return (
-            knob_on
-            and OU.check_obj_in_receptacle(self, "croissant", "pan")
-            and OU.gripper_obj_far(self, obj_name="croissant")
-        )
+        croissant_in_pan = OU.check_obj_in_receptacle(self, "croissant", "pan")
+        pan_on_stove = OU.check_obj_fixture_contact(self, "pan", self.stove)
+        gripper_far = OU.gripper_obj_far(self, obj_name="croissant")
+        return knob_on and croissant_in_pan and pan_on_stove and gripper_far

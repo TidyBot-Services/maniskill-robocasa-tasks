@@ -197,6 +197,53 @@ def _patch_door_state_methods():
 _patch_door_state_methods()
 
 
+# ---------------------------------------------------------------------------
+# Monkey-patch Stove methods for SAPIEN compatibility.
+# ---------------------------------------------------------------------------
+def _patch_stove_methods():
+    from mani_skill.utils.scene_builder.robocasa.fixtures.stove import Stove, STOVE_LOCATIONS
+
+    def _stove_get_knobs_state(self, env):
+        """SAPIEN-compatible: read knob joint qpos from articulation."""
+        knobs_state = {}
+        art = getattr(self, 'articulation', None)
+        if art is None:
+            return knobs_state
+        for location in STOVE_LOCATIONS:
+            joint = self.knob_joints[location]
+            if joint is None:
+                continue
+            site = self.burner_sites[location]
+            if site is None:
+                continue
+            joint_name = "knob_{}_joint".format(location)
+            qpos = _get_joint_qpos(self, joint_name)
+            qpos = qpos % (2 * np.pi)
+            if qpos < 0:
+                qpos += 2 * np.pi
+            knobs_state[location] = qpos
+        return knobs_state
+
+    def _stove_set_knob_state(self, env, rng, knob, mode="on"):
+        """SAPIEN-compatible: set knob joint qpos."""
+        assert mode in ["on", "off"]
+        if mode == "off":
+            joint_val = 0.0
+        else:
+            if rng.uniform() < 0.5:
+                joint_val = rng.uniform(0.50, np.pi / 2)
+            else:
+                joint_val = rng.uniform(2 * np.pi - np.pi / 2, 2 * np.pi - 0.50)
+        joint_name = "knob_{}_joint".format(knob)
+        _set_joint_qpos(self, joint_name, joint_val)
+
+    Stove.get_knobs_state = _stove_get_knobs_state
+    Stove.set_knob_state = _stove_set_knob_state
+
+
+_patch_stove_methods()
+
+
 class _FixtureRefsProxy:
     """
     Proxy that makes self.fixture_refs behave like a dict (RoboCasa API)

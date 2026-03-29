@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -102,24 +102,12 @@ class OrganizeCleaningSupplies(Kitchen):
 
         return cfgs
 
-    def _obj_sink_dist(self, obj_name):
-        """
-        Returns the distance of the object from the sink
-        """
-        sink_points = self.sink.get_ext_sites(all_points=True, relative=False)
-        obj_point = self.sim.data.body_xpos[self.obj_body_id[obj_name]]
-
-        all_dists = [np.linalg.norm(p1 - obj_point) for p1 in sink_points]
-        return np.min(all_dists)
-
     def _check_success(self):
 
         # must make sure the cleaner is on the counter and close to the sink
         gripper_obj_far = OU.gripper_obj_far(self, obj_name="cleaner")
         obj_on_counter = OU.check_obj_fixture_contact(self, "cleaner", self.counter)
-
-        obj_name = self.objects["cleaner"].name
-        obj_sink_close = self._obj_sink_dist(obj_name) < 0.35
+        obj_sink_close = OU.check_obj_near_fixture(self, "cleaner", self.sink, th=0.35)
 
         door_state = self.cab.get_door_state(env=self)
 

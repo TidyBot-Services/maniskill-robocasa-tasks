@@ -86,6 +86,7 @@ class DefrostByCategory(Kitchen):
         vegetables_in_bowl = OU.check_obj_in_receptacle(
             self, "obj2", "container"
         ) and OU.check_obj_in_receptacle(self, "obj3", "container")
+        bowl_on_counter = OU.check_obj_fixture_contact(self, "container", self.counter)
 
         gripper_obj_far = True
         for i in range(4):
@@ -93,4 +94,4 @@ class DefrostByCategory(Kitchen):
                 self, obj_name="obj" + str(i)
             )
 
-        return fruits_in_sink and vegetables_in_bowl and gripper_obj_far
+        return fruits_in_sink and vegetables_in_bowl and bowl_on_counter and gripper_obj_far

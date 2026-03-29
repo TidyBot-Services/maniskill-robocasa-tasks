@@ -821,9 +821,10 @@ class PnPCounterToStove(PnP):
             bool: True if the task is successful, False otherwise
         """
         obj_in_container = OU.check_obj_in_receptacle(self, "obj", "container", th=0.07)
+        container_on_stove = OU.check_obj_fixture_contact(self, "container", self.stove)
         gripper_obj_far = OU.gripper_obj_far(self)
 
-        return obj_in_container and gripper_obj_far
+        return obj_in_container and container_on_stove and gripper_obj_far
 
 
 @register_env("RoboCasa-Pn-P-Stove-To-Counter-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -924,6 +925,7 @@ class PnPStoveToCounter(PnP):
             bool: True if the task is successful, False otherwise
         """
         obj_in_container = OU.check_obj_in_receptacle(self, "obj", "container", th=0.07)
+        container_on_counter = OU.check_obj_fixture_contact(self, "container", self.counter)
         gripper_obj_far = OU.gripper_obj_far(self)
 
-        return obj_in_container and gripper_obj_far
+        return obj_in_container and container_on_counter and gripper_obj_far

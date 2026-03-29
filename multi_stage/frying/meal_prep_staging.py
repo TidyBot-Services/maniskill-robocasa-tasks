@@ -102,30 +102,6 @@ class MealPrepStaging(Kitchen):
 
         return cfgs
 
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-        """
-        Check if object is on a burner site on the stove.
-        Returns the location of the burner if the object is on the stove and close to a burner. None otherwise.
-        """
-
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    if obj_on_site:
-                        return location
-
-        return None
-
     def _check_success(self):
 
         vegetable_on_pan1 = OU.check_obj_in_receptacle(self, "vegetable", "pan1")
@@ -137,8 +113,8 @@ class MealPrepStaging(Kitchen):
             vegetable_on_pan2 and meat_on_pan1
         )
 
-        pan1_loc = self._check_obj_location_on_stove(obj_name="pan1")
-        pan2_loc = self._check_obj_location_on_stove(obj_name="pan2")
+        pan1_loc = OU.check_obj_location_on_stove(self, "pan1", self.stove)
+        pan2_loc = OU.check_obj_location_on_stove(self, "pan2", self.stove)
 
         pans_on_stove = pan1_loc != None and pan2_loc != None
         pans_diff = pan1_loc != pan2_loc

@@ -88,47 +88,10 @@ class HeatMultipleWater(Kitchen):
         for knob in valid_knobs:
             self.stove.set_knob_state(mode="off", knob=knob, env=self, rng=self.rng)
 
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-        """
-        Check if the object is placed on any of the stove burners
-
-        Args:
-            obj_name (str): object name
-
-            threshold (float): distance threshold from object center to stove burner site center
-
-        Returns:
-            str: location of the stove burner site if the object is placed on it, None otherwise.
-        """
-
-        knobs_state = self.stove.get_knobs_state(env=self)
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    knob_on = (
-                        (0.35 <= np.abs(knobs_state[location]) <= 2 * np.pi - 0.35)
-                        if location in knobs_state
-                        else False
-                    )
-
-                    if obj_on_site and knob_on:
-                        return location
-
-        return None
-
     def _check_success(self):
 
-        pan_loc = self._check_obj_location_on_stove("obj", threshold=0.15)
-        kettle_loc = self._check_obj_location_on_stove("obj2")
+        pan_loc = OU.check_obj_location_on_stove(self, "obj", self.stove, threshold=0.15)
+        kettle_loc = OU.check_obj_location_on_stove(self, "obj2", self.stove)
 
         # both objects placed on different parts of the stove
         successful_stove_placement = (

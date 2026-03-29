@@ -112,30 +112,6 @@ class MultistepSteaming(Kitchen):
 
         return cfgs
 
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-        """
-        Check if the object is on any of the burners of the stove
-        Returns the location of the burner if the object is on it. Otherwise, returns None
-        """
-
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    if obj_on_site:
-                        return location
-
-        return None
-
     def _check_success(self):
 
         handle_state = self.sink.get_handle_state(env=self)
@@ -144,7 +120,7 @@ class MultistepSteaming(Kitchen):
         if water_on:
             self.water_was_turned_on = True
 
-        pot_loc = self._check_obj_location_on_stove(obj_name="pot")
+        pot_loc = OU.check_obj_location_on_stove(self, "pot", self.stove)
         pot_on_burner = pot_loc == self.knob
 
         vegetable_in_sink = OU.obj_inside_of(self, "vegetable1", self.sink)

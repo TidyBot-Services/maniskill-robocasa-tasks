@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -95,39 +95,8 @@ class SearingMeat(Kitchen):
 
         return cfgs
 
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-        """
-        Check if the object is on the stove and close to a burner and the knob is on.
-        Returns the location of the burner if the object is on the stove, close to a burner, and the burner is on.
-        None otherwise.
-        """
-
-        knobs_state = self.stove.get_knobs_state(env=self)
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    knob_on = (
-                        (0.35 <= np.abs(knobs_state[location]) <= 2 * np.pi - 0.35)
-                        if location in knobs_state
-                        else False
-                    )
-
-                    if obj_on_site and knob_on:
-                        return location
-
-        return None
-
     def _check_success(self):
         gripper_obj_far = OU.gripper_obj_far(self, obj_name="meat")
-        pan_loc = self._check_obj_location_on_stove("pan", threshold=0.15) == self.knob
+        pan_loc = OU.check_obj_location_on_stove(self, "pan", self.stove, threshold=0.15) == self.knob
         meat_in_pan = OU.check_obj_in_receptacle(self, "meat", "pan", th=0.07)
         return gripper_obj_far and pan_loc and meat_in_pan

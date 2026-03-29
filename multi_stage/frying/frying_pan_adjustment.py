@@ -36,7 +36,7 @@ class FryingPanAdjustment(Kitchen):
         # then determine where it is placed and turn on the corresponding burner and update the start_loc
         super()._reset_internal()
         valid_knobs = self.stove.get_knobs_state(env=self).keys()
-        pan_loc = self._check_obj_location_on_stove("obj")
+        pan_loc = OU.check_obj_location_on_stove(self, "obj", self.stove)
 
         for knob in valid_knobs:
             if pan_loc == knob:
@@ -70,34 +70,9 @@ class FryingPanAdjustment(Kitchen):
         ] = f"Pick and place the pan from the current burner to another burner and turn the burner on."
         return ep_meta
 
-    # TODO Move this function to OU
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-        """
-        Check if the object is on the stove and close to a burner
-        Returns the location of the burner if the object is on the stove and close to a burner. None otherwise.
-        """
-
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    if obj_on_site:
-                        return location
-
-        return None
-
     def _check_success(self):
         # get the current location of the pan on the stove
-        curr_loc = self._check_obj_location_on_stove("obj")
+        curr_loc = OU.check_obj_location_on_stove(self, "obj", self.stove)
         knobs_state = self.stove.get_knobs_state(env=self)
         knob_on_loc = False
         if curr_loc is not None and curr_loc in knobs_state:

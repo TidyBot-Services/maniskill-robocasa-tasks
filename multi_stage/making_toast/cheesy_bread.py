@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -74,9 +74,9 @@ class CheesyBread(Kitchen):
         return cfgs
 
     def _check_success(self):
-        # Bread is still on the cutting board, and cheese is on top
-        return (
-            OU.check_obj_in_receptacle(self, "bread", "bread_container")
-            and OU.gripper_obj_far(self, obj_name="cheese")
-            and self.check_contact(self.objects["cheese"], self.objects["bread"])
-        )
+        # Bread is still on the cutting board, and cheese is on the bread
+        bread_on_board = OU.check_obj_in_receptacle(self, "bread", "bread_container")
+        cheese_on_bread = OU.check_obj_near_obj(self, "cheese", "bread", th=0.10)
+        cheese_on_board = OU.check_obj_in_receptacle(self, "cheese", "bread_container")
+        gripper_far = OU.gripper_obj_far(self, obj_name="cheese")
+        return bread_on_board and cheese_on_bread and cheese_on_board and gripper_far

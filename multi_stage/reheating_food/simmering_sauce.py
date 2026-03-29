@@ -105,32 +105,8 @@ class SimmeringSauce(Kitchen):
 
         return cfgs
 
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-        """
-        Check if the object is on the stove and close to a burner.
-        Returns the location of the burner if the object is on the stove and close to a burner. None otherwise.
-        """
-
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    if obj_on_site:
-                        return location
-
-        return None
-
     def _check_success(self):
-        pan_on_stove = self._check_obj_location_on_stove("pan") == self.knob
+        pan_on_stove = OU.check_obj_location_on_stove(self, "pan", self.stove) == self.knob
         tomato_in_pan = OU.check_obj_in_receptacle(self, "tomato", "pan")
         onion_in_pan = OU.check_obj_in_receptacle(self, "onion", "pan")
 

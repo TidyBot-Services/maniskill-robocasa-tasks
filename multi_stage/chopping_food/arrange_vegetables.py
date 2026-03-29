@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -97,16 +97,22 @@ class ArrangeVegetables(Kitchen):
         return cfgs
 
     def _check_success(self):
-        vegetable1_cutting_board_contact = OU.check_obj_in_receptacle(
+        vegetable1_on_board = OU.check_obj_in_receptacle(
             self, "vegetable1", "cutting_board"
         )
-        vegetable2_cutting_board_contact = OU.check_obj_in_receptacle(
+        vegetable2_on_board = OU.check_obj_in_receptacle(
             self, "vegetable2", "cutting_board"
         )
         gripper_obj_far = OU.gripper_obj_far(self, obj_name="cutting_board")
 
+        # Check knife is near cutting board (within 0.25m)
+        knife_near_board = OU.check_obj_near_obj(
+            self, "knife", "cutting_board", th=0.25
+        )
+
         return (
-            vegetable1_cutting_board_contact
-            and vegetable2_cutting_board_contact
+            vegetable1_on_board
+            and vegetable2_on_board
             and gripper_obj_far
+            and knife_near_board
         )

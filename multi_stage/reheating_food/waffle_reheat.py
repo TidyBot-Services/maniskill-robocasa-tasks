@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -64,4 +64,9 @@ class WaffleReheat(Kitchen):
         waffle_in_bowl = OU.check_obj_in_receptacle(self, "waffle", "waffle_container")
         bowl_in_microwave = OU.obj_inside_of(self, "waffle_container", self.microwave)
         microwave_on = self.microwave.get_state()["turned_on"]
-        return waffle_in_bowl and bowl_in_microwave and microwave_on and gripper_far
+
+        # Check microwave door is closed
+        door_state = self.microwave.get_door_state(env=self)
+        microwave_closed = all(v <= 0.05 for v in door_state.values())
+
+        return waffle_in_bowl and bowl_in_microwave and microwave_on and microwave_closed and gripper_far

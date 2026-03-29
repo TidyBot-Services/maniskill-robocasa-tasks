@@ -131,6 +131,72 @@ def check_obj_near_obj(env, obj_name1: str, obj_name2: str, th: float = 0.25) ->
     return bool(xy_dist < th)
 
 
+def check_obj_near_fixture(env, obj_name: str, fixture, th: float = 0.35) -> bool:
+    """Check if an object is near a fixture (XY distance within threshold).
+
+    Args:
+        env: Unwrapped ManiSkill env
+        obj_name: Name of the object
+        fixture: Fixture reference
+        th: XY distance threshold in meters
+    """
+    obj_pos = _get_obj_pos(env, obj_name)
+    fixture_pos = np.array(fixture.pos)
+    xy_dist = np.linalg.norm(obj_pos[:2] - fixture_pos[:2])
+    return bool(xy_dist < th)
+
+
+# ---------------------------------------------------------------------------
+# OU.check_obj_location_on_stove
+# ---------------------------------------------------------------------------
+
+def check_obj_location_on_stove(env, obj_name, stove, threshold=0.08):
+    """Check if object is on the stove near a burner with the knob turned on.
+
+    SAPIEN-compatible replacement for the MuJoCo-based
+    _check_obj_location_on_stove method used by multiple tasks.
+
+    Args:
+        env: Unwrapped ManiSkill env
+        obj_name: Object name in object_actors
+        stove: Stove fixture reference
+        threshold: Max XY distance to burner center
+
+    Returns:
+        str or None: Burner location name (e.g. "front_left") if object is on
+                     that burner and the knob is on, else None.
+    """
+    from transforms3d.euler import euler2mat
+
+    obj_pos = _get_obj_pos(env, obj_name)
+    obj_on_stove = check_obj_fixture_contact(env, obj_name, stove)
+    if not obj_on_stove:
+        return None
+
+    knobs_state = stove.get_knobs_state(env=env)
+    stove_pos = np.array(stove.pos)
+    stove_rot = float(getattr(stove, 'rot', 0.0))
+    rot_mat = euler2mat(0, 0, stove_rot)
+
+    # Get burner positions from reset regions (local offsets)
+    regions = stove.get_reset_regions(env=env) if hasattr(stove, 'get_reset_regions') else {}
+
+    for location, region in regions.items():
+        if location not in knobs_state:
+            continue
+        offset = np.array(region.get("offset", [0, 0, 0]), dtype=float)
+        burner_world = stove_pos + rot_mat @ offset
+        dist = np.linalg.norm(burner_world[:2] - obj_pos[:2])
+
+        if dist < threshold:
+            knob_value = knobs_state[location]
+            knob_on = 0.35 <= np.abs(knob_value) <= 2 * np.pi - 0.35
+            if knob_on:
+                return location
+
+    return None
+
+
 # ---------------------------------------------------------------------------
 # OU.obj_inside_of
 # ---------------------------------------------------------------------------

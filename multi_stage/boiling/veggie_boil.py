@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from robocasa_tasks import robocasa_utils as OU
+from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -127,44 +127,6 @@ class VeggieBoil(Kitchen):
 
         return cfgs
 
-    def _check_obj_location_on_stove(self, obj_name, threshold=0.08):
-
-        """
-        Check if the object is placed on any of the stove burners
-
-        Args:
-            obj_name (str): object name
-
-            threshold (float): distance threshold from object center to stove burner site center
-
-        Returns:
-            str: location of the stove burner site if the object is placed on it, None otherwise.
-        """
-
-        knobs_state = self.stove.get_knobs_state(env=self)
-        obj = self.objects[obj_name]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])[0:2]
-        obj_on_stove = OU.check_obj_fixture_contact(self, obj_name, self.stove)
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - obj_pos)
-
-                    obj_on_site = dist < threshold
-                    knob_on = (
-                        (0.35 <= np.abs(knobs_state[location]) <= 2 * np.pi - 0.35)
-                        if location in knobs_state
-                        else False
-                    )
-
-                    if obj_on_site and knob_on:
-                        return location
-
-        return None
-
     def _check_success(self):
         """
         Check if the task is successful.
@@ -181,5 +143,5 @@ class VeggieBoil(Kitchen):
             self.filled_time = 0
 
         vegetables_in_pot = OU.check_obj_in_receptacle(self, "food", "pot")
-        pot_on_stove = self._check_obj_location_on_stove("pot") is not None
+        pot_on_stove = OU.check_obj_location_on_stove(self, "pot", self.stove) is not None
         return self.pot_filled and vegetables_in_pot and not water_on and pot_on_stove
