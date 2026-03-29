@@ -453,6 +453,11 @@ class Kitchen(RoboCasaKitchenEnv):
     {"success": bool} for ManiSkill compatibility.
     """
 
+    def _reset_internal(self):
+        """Override point for task subclasses to set initial fixture state (door open, knob on, etc).
+        Called from _load_scene after scene is built. Subclasses should call super()._reset_internal()."""
+        pass
+
     def _initialize_episode(self, env_idx, options):
         """Parent init + correct physics issues (tilted/fallen objects)."""
         super()._initialize_episode(env_idx, options)
