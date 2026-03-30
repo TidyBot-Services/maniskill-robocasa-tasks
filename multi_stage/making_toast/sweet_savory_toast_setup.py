@@ -128,7 +128,7 @@ class SweetSavoryToastSetup(Kitchen):
 
     def _check_success(self):
         gripper_obj_far = OU.gripper_obj_far(self, "plate")
-        jam_on_counter = self.check_contact(self.objects["jam"], self.counter)
+        jam_on_counter = OU.check_obj_fixture_contact(self, "jam", self.counter)
         food_on_plate = OU.check_obj_in_receptacle(
             self, "bread", "plate"
         ) and OU.check_obj_in_receptacle(self, "avocado", "plate")

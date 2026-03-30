@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
+from robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
@@ -480,7 +480,7 @@ class PnPSinkToCounter(PnP):
             bool: True if the task is successful, False otherwise
         """
         obj_in_recep = OU.check_obj_in_receptacle(self, "obj", "container")
-        recep_on_counter = self.check_contact(self.objects["container"], self.counter)
+        recep_on_counter = OU.check_obj_fixture_contact(self, "container", self.counter)
         gripper_obj_far = OU.gripper_obj_far(self)
         return obj_in_recep and recep_on_counter and gripper_obj_far
 
@@ -602,13 +602,10 @@ class PnPCounterToMicrowave(PnP):
         Returns:
             bool: True if the task is successful, False otherwise
         """
-        obj = self.objects["obj"]
-        container = self.objects["container"]
-
-        obj_container_contact = self.check_contact(obj, container)
-        container_micro_contact = self.check_contact(container, self.microwave)
+        obj_in_container = OU.check_obj_in_receptacle(self, "obj", "container")
+        container_in_microwave = OU.obj_inside_of(self, "container", self.microwave)
         gripper_obj_far = OU.gripper_obj_far(self)
-        return obj_container_contact and container_micro_contact and gripper_obj_far
+        return obj_in_container and container_in_microwave and gripper_obj_far
 
 
 @register_env("RoboCasa-Pn-P-Microwave-To-Counter-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])

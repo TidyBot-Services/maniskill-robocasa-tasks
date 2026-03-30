@@ -117,9 +117,7 @@ class PrepMarinatingMeat(Kitchen):
         gripper_obj_far = OU.gripper_obj_far(self, "condiment") and OU.gripper_obj_far(
             self, "meat"
         )
-        condiment_on_counter = self.check_contact(
-            self.objects["condiment"], self.counter
-        )
+        condiment_on_counter = OU.check_obj_fixture_contact(self, "condiment", self.counter)
         meat_on_cutting_board = OU.check_obj_in_receptacle(
             self, "meat", "cutting_board"
         )

@@ -127,9 +127,12 @@ class DryDrinkware(Kitchen):
         return roll_x, pitch_y, yaw_z
 
     def _check_success(self):
-        mug_rot = self.sim.data.xquat[self.obj_body_id["mug"]]
+        # Get mug quaternion from SAPIEN
+        si = getattr(self, '_scene_idx_to_be_loaded', 0)
+        mug_actor = self.object_actors[si]["mug"]["actor"]
+        quat_wxyz = mug_actor.pose.q[0].cpu().numpy()
         # make sure the mug is placed upside down
-        mug_rot = self.euler_from_quaternion(*mug_rot)
+        mug_rot = self.euler_from_quaternion(quat_wxyz[0], quat_wxyz[1], quat_wxyz[2], quat_wxyz[3])
         return (
             OU.gripper_obj_far(self, obj_name="mug")
             and np.abs(mug_rot[2]) > 3

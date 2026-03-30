@@ -78,28 +78,5 @@ class KettleBoiling(Kitchen):
         """
         Check if the kettle is placed on the stove burner and the burner is turned on.
         """
-        knobs_state = self.stove.get_knobs_state(env=self)
-        kettle = self.objects["obj"]
-        kettle_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[kettle.name]])[
-            0:2
-        ]
-        obj_on_stove = OU.check_obj_fixture_contact(self, "obj", self.stove)
-        if obj_on_stove:
-            for location, site in self.stove.burner_sites.items():
-                if site is not None:
-                    burner_pos = np.array(
-                        self.sim.data.get_site_xpos(site.get("name"))
-                    )[0:2]
-                    dist = np.linalg.norm(burner_pos - kettle_pos)
-
-                    kettle_on_site = dist < 0.15
-                    knob_on = (
-                        (0.35 <= np.abs(knobs_state[location]) <= 2 * np.pi - 0.35)
-                        if location in knobs_state
-                        else False
-                    )
-
-                    if kettle_on_site and knob_on and OU.gripper_obj_far(self):
-                        return True
-
-        return False
+        kettle_loc = OU.check_obj_location_on_stove(self, "obj", self.stove, threshold=0.15)
+        return kettle_loc is not None and OU.gripper_obj_far(self)

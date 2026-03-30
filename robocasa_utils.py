@@ -311,8 +311,23 @@ def check_obj_fixture_contact(env, obj_name, fixture_name=None) -> bool:
         # XY: within fixture footprint + small tolerance
         xy_ok = (np.abs(obj_pos[0] - fpos[0]) < fsize[0] + 0.03 and
                  np.abs(obj_pos[1] - fpos[1]) < fsize[1] + 0.03)
-        # Z: object should be near fixture top surface
+        # Z: use AABB top z for articulated fixtures (e.g. stove where
+        # fpos[2]+fsize[2] includes the oven body, not the cooking surface)
         fixture_top = fpos[2] + fsize[2]
+        art = getattr(fixture, 'articulation', None)
+        if art is not None:
+            try:
+                tops = []
+                for link in art.links:
+                    for b in link._bodies:
+                        try:
+                            tops.append(b.compute_global_aabb_tight()[1][2])
+                        except Exception:
+                            pass
+                if tops:
+                    fixture_top = max(tops)
+            except Exception:
+                pass
         z_ok = -0.02 <= (obj_pos[2] - fixture_top) <= 0.10
         return bool(xy_ok and z_ok)
 

@@ -137,14 +137,9 @@ class RestockPantry(Kitchen):
         Returns:
             bool: True if the object is closer to the cabinet cans than the other object, False otherwise
         """
-        obj = self.objects[obj_name]
-        can = self.objects["cab_obj1"]
-        other_obj = self.objects["cab_obj2"]
-        obj_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[obj.name]])
-        can_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[can.name]])
-        other_obj_pos = np.array(
-            self.sim.data.body_xpos[self.obj_body_id[other_obj.name]]
-        )
+        obj_pos = OU._get_obj_pos(self, obj_name)
+        can_pos = OU._get_obj_pos(self, "cab_obj1")
+        other_obj_pos = OU._get_obj_pos(self, "cab_obj2")
 
         can_dist = np.linalg.norm(obj_pos - can_pos)
         other_dist = np.linalg.norm(other_obj_pos - obj_pos)

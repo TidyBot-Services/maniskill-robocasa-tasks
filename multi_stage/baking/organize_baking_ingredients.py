@@ -115,14 +115,8 @@ class OrganizeBakingIngredients(Kitchen):
 
         th = 0.2
 
-        bowl_pos = self.sim.data.body_xpos[self.obj_body_id["bowl"]]
-        egg1_pos = self.sim.data.body_xpos[self.obj_body_id["egg1"]]
-        egg2_pos = self.sim.data.body_xpos[self.obj_body_id["egg2"]]
-        milk_pos = self.sim.data.body_xpos[self.obj_body_id["milk"]]
-
-        # check if the objects are near the bowl
-        bowl_egg1_close = np.linalg.norm(bowl_pos - egg1_pos) < th
-        bowl_egg2_close = np.linalg.norm(bowl_pos - egg2_pos) < th
-        bowl_milk_close = np.linalg.norm(bowl_pos - milk_pos) < th
+        bowl_egg1_close = OU.check_obj_near_obj(self, "egg1", "bowl", th=th)
+        bowl_egg2_close = OU.check_obj_near_obj(self, "egg2", "bowl", th=th)
+        bowl_milk_close = OU.check_obj_near_obj(self, "milk", "bowl", th=th)
 
         return bowl_egg1_close and bowl_egg2_close and bowl_milk_close

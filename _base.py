@@ -252,7 +252,16 @@ def _patch_sink_methods():
 
     def _sink_get_handle_state(self, env):
         handle_state = {}
-        if self.handle_joint is None:
+        # Skip MuJoCo's self.handle_joint property (uses worldbody);
+        # check if handle joint exists via SAPIEN articulation instead
+        has_handle = _get_joint_qpos(self, "handle_joint") != 0.0 or \
+                     any("handle" in j for j in (self.articulation.active_joints_map if self.articulation else {}))
+        if not has_handle:
+            # Return safe defaults
+            handle_state["handle_joint"] = 0.0
+            handle_state["water_on"] = False
+            handle_state["spout_joint"] = 0.0
+            handle_state["spout_ori"] = "center"
             return handle_state
 
         handle_qpos = _get_joint_qpos(self, "handle_joint")
@@ -301,8 +310,7 @@ def _patch_coffee_machine_methods():
     from mani_skill.utils.scene_builder.robocasa.fixtures.accessories import CoffeeMachine
 
     def _coffee_check_receptacle_placement(self, env, obj_name, xy_thresh=0.04):
-        if self._receptacle_pouring_site is None:
-            return False
+        # In SAPIEN _receptacle_pouring_site is never populated; use self.pos instead
         from robocasa_tasks.robocasa_utils import _get_obj_pos
         obj_pos = _get_obj_pos(env, obj_name)
         # Approximate pour site with fixture position (receptacle is below machine)
@@ -531,22 +539,28 @@ class Kitchen(RoboCasaKitchenEnv):
                         pos[2] = surface_z + 0.02
                     changed = True
 
-                # 2. Fix tilted flat objects (plates, bowls, containers, etc.)
+                # 2. Fix tilted/flipped objects
                 is_flat_type = any(kw in name.lower() for kw in _FLAT_OBJECT_KEYWORDS)
+                rot_matrix = R.from_quat(quat_xyzw).as_matrix()
+                # Check if object's local z-axis points downward (flipped/inverted)
+                local_z_up = rot_matrix[:, 2]  # third column = local z in world frame
+                is_flipped = local_z_up[2] < 0  # local z points downward
                 tilt = max(abs(euler[0]), abs(euler[1]))
-                if is_flat_type and tilt > _TILT_THRESHOLD_RAD:
+
+                if is_flat_type and (is_flipped or tilt > _TILT_THRESHOLD_RAD):
+                    # Upright the object: keep only yaw rotation
                     corrected = R.from_euler('xyz', [0.0, 0.0, euler[2]])
                     cq = corrected.as_quat()  # xyzw
                     new_quat = np.array([cq[3], cq[0], cq[1], cq[2]])  # wxyz
-                    # If severely tilted (>60°), z needs correction
-                    if tilt > np.deg2rad(60.0) and pos[2] > surface_z + 0.05:
+                    # If severely tilted/flipped, z needs correction
+                    if (is_flipped or tilt > np.deg2rad(60.0)) and pos[2] > surface_z - 0.05:
                         pos[2] = surface_z + 0.02
                     new_pose = sapien.Pose(pos, new_quat)
                     actor.set_pose(new_pose)
                     data["pose"] = new_pose
                     changed = True
-                elif not is_flat_type and tilt > np.deg2rad(25.0):
-                    # Any object significantly tilted (>25°) — upright it
+                elif not is_flat_type and (is_flipped or tilt > np.deg2rad(25.0)):
+                    # Any object significantly tilted or flipped — upright it
                     corrected = R.from_euler('xyz', [0.0, 0.0, euler[2]])
                     cq = corrected.as_quat()
                     new_quat = np.array([cq[3], cq[0], cq[1], cq[2]])
