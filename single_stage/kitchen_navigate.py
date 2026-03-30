@@ -114,16 +114,20 @@ class NavigateKitchen(Kitchen):
         Returns:
             bool: True if the task is successful, False otherwise.
         """
-        # Get robot base position from SAPIEN agent
         try:
-            qpos = self.agent.robot.get_qpos()
-            if hasattr(qpos, 'cpu'):
-                qpos = qpos[0].cpu().numpy()
-            base_pos = np.array([float(qpos[0]), float(qpos[1]), 0.0])
-            base_yaw = float(qpos[2])
+            # Use robot world pose (not qpos, which is in local frame)
+            base_world = self.agent.robot.pose.p[0].cpu().numpy()
+            pos_check = np.linalg.norm(np.array(self.target_pos[:2]) - base_world[:2]) <= 0.20
+
+            # Extract world yaw from robot pose quaternion
+            q_wxyz = self.agent.robot.pose.q[0].cpu().numpy()
+            # Convert wxyz -> xyzw for scipy
+            from scipy.spatial.transform import Rotation as R
+            rot = R.from_quat([q_wxyz[1], q_wxyz[2], q_wxyz[3], q_wxyz[0]])
+            base_yaw = rot.as_euler('xyz')[2]
+
+            ori_check = np.cos(self.target_ori - base_yaw) >= 0.98 if isinstance(self.target_ori, (int, float)) else True
         except Exception:
             return False
-        pos_check = np.linalg.norm(np.array(self.target_pos[:2]) - base_pos[:2]) <= 0.20
-        ori_check = np.cos(self.target_ori - base_yaw) >= 0.98 if isinstance(self.target_ori, (int, float)) else True
 
         return pos_check and ori_check
