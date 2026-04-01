@@ -683,12 +683,48 @@ class Kitchen(RoboCasaKitchenEnv):
         if not hasattr(self, 'target_location') and hasattr(self, 'init_robot_base_pos'):
             self.target_location = getattr(self, 'init_robot_base_pos', None)
     
-    def get_obj_lang(self):
-        """Get language description of the main object."""
+    def get_ep_meta(self):
+        """Get episode metadata. Subclasses override to add 'lang' etc."""
+        return dict(self._ep_meta) if hasattr(self, '_ep_meta') else {}
+
+    def get_obj_lang(self, obj_name="obj", get_preposition=False):
+        """Get language description of an object by its config name.
+
+        Looks up the sampled category from object_cfgs (e.g. 'mug', 'banana').
+        Falls back to the config name with underscores replaced by spaces.
+
+        Args:
+            obj_name: config name from _get_obj_cfgs (default "obj")
+            get_preposition: if True, return (name, preposition) tuple
+        """
         scene_idx = getattr(self, '_scene_idx_to_be_loaded', 0)
-        if "obj" in self.object_actors[scene_idx]:
-            return "object"
-        return "item"
+        lang = obj_name.replace("_", " ")
+
+        # Look up real category from object_cfgs
+        object_cfgs = getattr(self, 'object_cfgs', None)
+        if object_cfgs and scene_idx < len(object_cfgs):
+            for cfg in object_cfgs[scene_idx]:
+                if cfg.get("name") == obj_name:
+                    info = cfg.get("info", {})
+                    cat = info.get("cat")
+                    if cat:
+                        lang = cat.replace("_", " ")
+                    break
+
+        if get_preposition:
+            # Simple heuristic: containers/receptacles use "in", surfaces use "on"
+            preposition = "on"
+            if object_cfgs and scene_idx < len(object_cfgs):
+                for cfg in object_cfgs[scene_idx]:
+                    if cfg.get("name") == obj_name:
+                        info = cfg.get("info", {})
+                        groups = info.get("groups_containing_sampled_obj", [])
+                        if "receptacle" in groups or "container" in groups:
+                            preposition = "in"
+                        break
+            return lang, preposition
+
+        return lang
     
     def check_contact(self, obj1, obj2):
         """Stub for MuJoCo contact check — use proximity instead."""
