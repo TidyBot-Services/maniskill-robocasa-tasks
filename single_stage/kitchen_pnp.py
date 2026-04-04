@@ -115,18 +115,7 @@ class PnPCounterToCab(PnP):
                 ),
             )
         )
-        cfgs.append(
-            dict(
-                name="distr_cab",
-                obj_groups="all",
-                placement=dict(
-                    fixture=self.cab,
-                    size=(1.0, 0.20),
-                    pos=(0.0, 1.0),
-                    offset=(0.0, 0.0),
-                ),
-            )
-        )
+        # distr_cab removed — it blocks the cabinet and confuses the agent
 
         return cfgs
 

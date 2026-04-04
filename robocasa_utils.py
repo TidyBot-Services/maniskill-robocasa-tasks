@@ -219,43 +219,15 @@ def obj_inside_of(env, obj_name: str, fixture_id: str,
     obj_pos = _get_obj_pos(env, obj_name)
     fixture = _get_fixture_ref(env, fixture_id)
 
-    # Try to use fixture's int_sites (interior regions)
-    if hasattr(fixture, 'get_int_sites'):
-        try:
-            int_regions = fixture.get_int_sites(relative=False)
-            for (p0, px, py, pz) in int_regions.values():
-                p0, px, py, pz = np.array(p0), np.array(px), np.array(py), np.array(pz)
-                u = px - p0
-                v = py - p0
-                w = pz - p0
-
-                # Check if object center is within the region
-                check1 = np.dot(u, p0) - th <= np.dot(u, obj_pos) <= np.dot(u, px) + th
-                check2 = np.dot(v, p0) - th <= np.dot(v, obj_pos) <= np.dot(v, py) + th
-                check3 = np.dot(w, p0) - th <= np.dot(w, obj_pos) <= np.dot(w, pz) + th
-
-                if check1 and check2 and check3:
-                    return True
-            return False
-        except Exception:
-            pass
-
-    # Fallback: use fixture position + size, but only allow half-size in Z
-    # to avoid including the space below the fixture (e.g., counter below cabinet)
+    # Tight bounding box aligned with fixture opening
     if hasattr(fixture, 'pos') and hasattr(fixture, 'size'):
         fpos = np.array(fixture.pos)
-        fsize = np.array(fixture.size) if hasattr(fixture, 'size') else np.array([0.3, 0.3, 0.3])
-        lower = fpos - fsize - th
-        upper = fpos + fsize + th
-        # Tighten Z: only allow objects within the upper half of the fixture
-        # (prevents counting objects on counters below wall cabinets)
-        lower[2] = fpos[2] - fsize[2] * 0.5 - th
+        fsize = np.array(fixture.size)
+        # x=0.4m wide, y=0.2m deep, z=full fixture height
+        half = np.array([0.2, 0.1, fsize[2] * 0.5])
+        lower = fpos - half - th
+        upper = fpos + half + th
         return bool(np.all(obj_pos >= lower) and np.all(obj_pos <= upper))
-
-    # Last resort: tightened distance check
-    if hasattr(fixture, 'pos'):
-        dist = np.linalg.norm(obj_pos - np.array(fixture.pos))
-        return dist < 0.25  # tightened from 0.5
 
     return False
 
