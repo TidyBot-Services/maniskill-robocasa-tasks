@@ -791,7 +791,6 @@ class PnPCounterToStove(PnP):
                     ),
                     size=(0.30, 0.30),
                     pos=("ref", -1.0),
-                    try_to_place_in="container",
                 ),
             )
         )
