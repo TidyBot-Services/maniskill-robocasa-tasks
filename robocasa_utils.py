@@ -223,8 +223,9 @@ def obj_inside_of(env, obj_name: str, fixture_id: str,
     if hasattr(fixture, 'pos') and hasattr(fixture, 'size'):
         fpos = np.array(fixture.pos)
         fsize = np.array(fixture.size)
-        # x=0.4m wide, y=0.2m deep, z=full fixture height
-        half = np.array([0.2, 0.1, fsize[2] * 0.5])
+        # x=0.4m wide, y=0.3m deep (shifted +0.05 toward larger y), z=full fixture height + 0.10m below
+        half = np.array([0.2, 0.15, fsize[2] * 0.5 + 0.10])
+        fpos = fpos + np.array([0, 0.05, 0])  # shift center toward larger y
         lower = fpos - half - th
         upper = fpos + half + th
         return bool(np.all(obj_pos >= lower) and np.all(obj_pos <= upper))
