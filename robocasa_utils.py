@@ -82,7 +82,10 @@ def gripper_obj_far(env, obj_name: str = "obj", th: float = 0.25) -> bool:
     """
     obj_pos = _get_obj_pos(env, obj_name)
     eef_pos = _get_eef_pos(env)
-    return float(np.linalg.norm(eef_pos - obj_pos)) > th
+    dist = float(np.linalg.norm(eef_pos - obj_pos))
+    result = dist > th
+    print(f"[gripper_obj_far] eef={eef_pos} obj={obj_pos} dist={dist:.4f} th={th} far={result}", flush=True)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -228,7 +231,9 @@ def obj_inside_of(env, obj_name: str, fixture_id: str,
         fpos = fpos + np.array([0, 0.05, 0])  # shift center toward larger y
         lower = fpos - half - th
         upper = fpos + half + th
-        return bool(np.all(obj_pos >= lower) and np.all(obj_pos <= upper))
+        inside = bool(np.all(obj_pos >= lower) and np.all(obj_pos <= upper))
+        print(f"[obj_inside_of] obj={obj_name} obj_pos={obj_pos} fixture_pos={np.array(fixture.pos)} fsize={fsize} shifted_fpos={fpos} lower={lower} upper={upper} inside={inside}", flush=True)
+        return inside
 
     return False
 
