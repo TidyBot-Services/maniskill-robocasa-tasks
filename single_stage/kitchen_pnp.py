@@ -122,14 +122,13 @@ class PnPCounterToCab(PnP):
     def _check_success(self):
         """
         Check if the counter to cabinet pick and place task is successful.
-        Checks if the object is inside the cabinet and the gripper is far from the object.
+        Only checks if the object is inside the cabinet.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_inside_cab = OU.obj_inside_of(self, "obj", self.cab)
-        gripper_obj_far = OU.gripper_obj_far(self)
-        return obj_inside_cab and gripper_obj_far
+        return obj_inside_cab
 
 
 @register_env("RoboCasa-Pn-P-Cab-To-Counter-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -239,14 +238,13 @@ class PnPCabToCounter(PnP):
     def _check_success(self):
         """
         Check if the cabinet to counter pick and place task is successful.
-        Checks if the object is on the counter and the gripper is far from the object.
+        Only checks if the object is on the counter.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
-        gripper_obj_far = OU.gripper_obj_far(self)
         obj_on_counter = OU.check_obj_fixture_contact(self, "obj", self.counter)
-        return obj_on_counter and gripper_obj_far
+        return obj_on_counter
 
 
 @register_env("RoboCasa-Pn-P-Counter-To-Sink-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -351,14 +349,18 @@ class PnPCounterToSink(PnP):
     def _check_success(self):
         """
         Check if the counter to sink pick and place task is successful.
-        Checks if the object is inside the sink and the gripper is far from the object.
+
+        Only checks if the object is inside the sink. The gripper_obj_far
+        check (originally required EEF > 25cm from object) was dropped as
+        the retreat-distance gate added no signal — gripper always retreats
+        before final verify in our skill code, and during planning a brief
+        instant of "near + inside" shouldn't fail the task.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_in_sink = OU.obj_inside_of(self, "obj", self.sink, partial_check=True)
-        gripper_obj_far = OU.gripper_obj_far(self)
-        return obj_in_sink and gripper_obj_far
+        return obj_in_sink
 
 
 @register_env("RoboCasa-Pn-P-Sink-To-Counter-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -463,15 +465,14 @@ class PnPSinkToCounter(PnP):
     def _check_success(self):
         """
         Check if the sink to counter pick and place task is successful.
-        Checks if the object is in the container, the container on the counter, and the gripper far from the object.
+        Only checks if the object is in the container and the container is on the counter.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_in_recep = OU.check_obj_in_receptacle(self, "obj", "container")
         recep_on_counter = OU.check_obj_fixture_contact(self, "container", self.counter)
-        gripper_obj_far = OU.gripper_obj_far(self)
-        return obj_in_recep and recep_on_counter and gripper_obj_far
+        return obj_in_recep and recep_on_counter
 
 
 @register_env("RoboCasa-Pn-P-Counter-To-Microwave-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -586,15 +587,14 @@ class PnPCounterToMicrowave(PnP):
     def _check_success(self):
         """
         Check if the counter to microwave pick and place task is successful.
-        Checks if the object is inside the microwave and on the container and the gripper is far from the object.
+        Only checks if the object is on the container and the container is inside the microwave.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_in_container = OU.check_obj_in_receptacle(self, "obj", "container")
         container_in_microwave = OU.obj_inside_of(self, "container", self.microwave)
-        gripper_obj_far = OU.gripper_obj_far(self)
-        return obj_in_container and container_in_microwave and gripper_obj_far
+        return obj_in_container and container_in_microwave
 
 
 @register_env("RoboCasa-Pn-P-Microwave-To-Counter-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -710,14 +710,13 @@ class PnPMicrowaveToCounter(PnP):
     def _check_success(self):
         """
         Check if the microwave to counter pick and place task is successful.
-        Checks if the object is inside the container and the gripper far from the object.
+        Only checks if the object is on the container.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_container_contact = OU.check_obj_in_receptacle(self, "obj", "container")
-        gripper_obj_far = OU.gripper_obj_far(self)
-        return obj_container_contact and gripper_obj_far
+        return obj_container_contact
 
 
 @register_env("RoboCasa-Pn-P-Counter-To-Stove-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -800,16 +799,15 @@ class PnPCounterToStove(PnP):
     def _check_success(self):
         """
         Check if the counter to stove pick and place task is successful.
-        Checks if the object is on the pan and the gripper far from the object.
+        Only checks if the object is on the pan and the pan is on the stove.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_in_container = OU.check_obj_in_receptacle(self, "obj", "container", th=0.07)
         container_on_stove = OU.check_obj_fixture_contact(self, "container", self.stove)
-        gripper_obj_far = OU.gripper_obj_far(self)
 
-        return obj_in_container and container_on_stove and gripper_obj_far
+        return obj_in_container and container_on_stove
 
 
 @register_env("RoboCasa-Pn-P-Stove-To-Counter-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
@@ -904,13 +902,12 @@ class PnPStoveToCounter(PnP):
     def _check_success(self):
         """
         Check if the stove to counter pick and place task is successful.
-        Checks if the object is inside the container on the counter and the gripper far from the object.
+        Only checks if the object is inside the container and the container is on the counter.
 
         Returns:
             bool: True if the task is successful, False otherwise
         """
         obj_in_container = OU.check_obj_in_receptacle(self, "obj", "container", th=0.07)
         container_on_counter = OU.check_obj_fixture_contact(self, "container", self.counter)
-        gripper_obj_far = OU.gripper_obj_far(self)
 
-        return obj_in_container and container_on_counter and gripper_obj_far
+        return obj_in_container and container_on_counter

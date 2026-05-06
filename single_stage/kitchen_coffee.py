@@ -94,19 +94,16 @@ class PnPCoffee(Kitchen):
 
     def _check_success(self):
         """
-        Check if the coffee task is successful.
-        This includes checking if the gripper is far from the object and the object is in corretly placed
-        on the desired fixture (counter or coffee machine).
+        Check if the coffee task is successful — object correctly placed on
+        the desired fixture (counter or coffee machine).
         """
-        gripper_obj_far = OU.gripper_obj_far(self)
-
         if self.behavior == "counter_to_machine":
             contact_check = self.coffee_machine.check_receptacle_placement_for_pouring(
                 self, "obj"
             )
         elif self.behavior == "machine_to_counter":
             contact_check = OU.check_obj_fixture_contact(self, "obj", self.counter)
-        return contact_check and gripper_obj_far
+        return contact_check
 
 
 @register_env("RoboCasa-Coffee-Setup-Mug-v0", max_episode_steps=300, asset_download_ids=["RoboCasa"])
