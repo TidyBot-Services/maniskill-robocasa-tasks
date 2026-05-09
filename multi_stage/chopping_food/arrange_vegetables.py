@@ -1,5 +1,5 @@
 from mani_skill.utils.registration import register_env
-from maniskill_tidyverse.robocasa_tasks import robocasa_utils as OU
+from robocasa_tasks import robocasa_utils as OU
 from robocasa_tasks._base import *
 
 
